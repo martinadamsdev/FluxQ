@@ -5,104 +5,112 @@
 //  Created by martinadamsdev on 2026/2/13.
 //
 
-import XCTest
+import Testing
 @testable import IPMsgProtocol
 
-final class IPMsgCommandTests: XCTestCase {
+@Test("基础命令原始值")
+func commandRawValues() {
+    #expect(IPMsgCommand.BR_ENTRY.rawValue == 0x01)
+    #expect(IPMsgCommand.BR_EXIT.rawValue == 0x02)
+    #expect(IPMsgCommand.ANSENTRY.rawValue == 0x03)
+    #expect(IPMsgCommand.BR_ABSENCE.rawValue == 0x04)
+    #expect(IPMsgCommand.SENDMSG.rawValue == 0x20)
+    #expect(IPMsgCommand.RECVMSG.rawValue == 0x21)
+    #expect(IPMsgCommand.GETFILEDATA.rawValue == 0x60)
+    #expect(IPMsgCommand.RELEASEFILES.rawValue == 0x61)
+    #expect(IPMsgCommand.GETDIRFILES.rawValue == 0x62)
+}
 
-    func testCommandRawValues() {
-        XCTAssertEqual(IPMsgCommand.BR_ENTRY.rawValue, 0x01)
-        XCTAssertEqual(IPMsgCommand.BR_EXIT.rawValue, 0x02)
-        XCTAssertEqual(IPMsgCommand.ANSENTRY.rawValue, 0x03)
-        XCTAssertEqual(IPMsgCommand.BR_ABSENCE.rawValue, 0x04)
-        XCTAssertEqual(IPMsgCommand.SENDMSG.rawValue, 0x20)
-        XCTAssertEqual(IPMsgCommand.RECVMSG.rawValue, 0x21)
-        XCTAssertEqual(IPMsgCommand.GETFILEDATA.rawValue, 0x60)
-        XCTAssertEqual(IPMsgCommand.RELEASEFILES.rawValue, 0x61)
-        XCTAssertEqual(IPMsgCommand.GETDIRFILES.rawValue, 0x62)
-    }
+@Test("命令名称")
+func commandNames() {
+    #expect(IPMsgCommand.BR_ENTRY.name == "BR_ENTRY")
+    #expect(IPMsgCommand.SENDMSG.name == "SENDMSG")
+    #expect(IPMsgCommand.GETFILEDATA.name == "GETFILEDATA")
+}
 
-    func testCommandNames() {
-        XCTAssertEqual(IPMsgCommand.BR_ENTRY.name, "BR_ENTRY")
-        XCTAssertEqual(IPMsgCommand.SENDMSG.name, "SENDMSG")
-        XCTAssertEqual(IPMsgCommand.GETFILEDATA.name, "GETFILEDATA")
-    }
+@Test("从原始值创建命令")
+func commandFromRawValue() {
+    #expect(IPMsgCommand(rawValue: 0x01) == .BR_ENTRY)
+    #expect(IPMsgCommand(rawValue: 0x20) == .SENDMSG)
+    #expect(IPMsgCommand(rawValue: 9999) == nil)
+}
 
-    func testCommandFromRawValue() {
-        XCTAssertEqual(IPMsgCommand(rawValue: 0x01), .BR_ENTRY)
-        XCTAssertEqual(IPMsgCommand(rawValue: 0x20), .SENDMSG)
-        XCTAssertNil(IPMsgCommand(rawValue: 9999))
-    }
+// MARK: - Avatar & Extended Commands
 
-    // MARK: - Avatar & Extended Commands
+@Test("头像命令原始值")
+func avatarCommandRawValues() {
+    #expect(IPMsgCommand.AVATAR.rawValue == 0x00020000)
+    #expect(IPMsgCommand.GETAVATAR.rawValue == 0x00030000)
+}
 
-    func testAvatarCommandRawValues() {
-        XCTAssertEqual(IPMsgCommand.AVATAR.rawValue, 0x00020000)
-        XCTAssertEqual(IPMsgCommand.GETAVATAR.rawValue, 0x00030000)
-    }
+@Test("撤回命令原始值")
+func recallCommandRawValue() {
+    #expect(IPMsgCommand.RECALLMSG.rawValue == 0x00010000)
+}
 
-    func testRecallCommandRawValue() {
-        XCTAssertEqual(IPMsgCommand.RECALLMSG.rawValue, 0x00010000)
-    }
+@Test("输入状态命令原始值")
+func typingCommandRawValues() {
+    #expect(IPMsgCommand.TYPING.rawValue == 0x00040000)
+    #expect(IPMsgCommand.STOPTYPING.rawValue == 0x00050000)
+}
 
-    func testTypingCommandRawValues() {
-        XCTAssertEqual(IPMsgCommand.TYPING.rawValue, 0x00040000)
-        XCTAssertEqual(IPMsgCommand.STOPTYPING.rawValue, 0x00050000)
-    }
+@Test("撤回列表命令原始值")
+func recallListCommandRawValue() {
+    #expect(IPMsgCommand.RECALLLIST.rawValue == 0x00060000)
+}
 
-    func testRecallListCommandRawValue() {
-        XCTAssertEqual(IPMsgCommand.RECALLLIST.rawValue, 0x00060000)
-    }
+@Test("扩展命令名称")
+func extendedCommandNames() {
+    #expect(IPMsgCommand.AVATAR.name == "AVATAR")
+    #expect(IPMsgCommand.GETAVATAR.name == "GETAVATAR")
+    #expect(IPMsgCommand.RECALLMSG.name == "RECALLMSG")
+    #expect(IPMsgCommand.TYPING.name == "TYPING")
+    #expect(IPMsgCommand.STOPTYPING.name == "STOPTYPING")
+    #expect(IPMsgCommand.RECALLLIST.name == "RECALLLIST")
+}
 
-    func testExtendedCommandNames() {
-        XCTAssertEqual(IPMsgCommand.AVATAR.name, "AVATAR")
-        XCTAssertEqual(IPMsgCommand.GETAVATAR.name, "GETAVATAR")
-        XCTAssertEqual(IPMsgCommand.RECALLMSG.name, "RECALLMSG")
-        XCTAssertEqual(IPMsgCommand.TYPING.name, "TYPING")
-        XCTAssertEqual(IPMsgCommand.STOPTYPING.name, "STOPTYPING")
-        XCTAssertEqual(IPMsgCommand.RECALLLIST.name, "RECALLLIST")
-    }
+@Test("扩展命令从原始值创建")
+func extendedCommandFromRawValue() {
+    #expect(IPMsgCommand(rawValue: 0x00020000) == .AVATAR)
+    #expect(IPMsgCommand(rawValue: 0x00030000) == .GETAVATAR)
+    #expect(IPMsgCommand(rawValue: 0x00010000) == .RECALLMSG)
+    #expect(IPMsgCommand(rawValue: 0x00040000) == .TYPING)
+    #expect(IPMsgCommand(rawValue: 0x00050000) == .STOPTYPING)
+    #expect(IPMsgCommand(rawValue: 0x00060000) == .RECALLLIST)
+}
 
-    func testExtendedCommandFromRawValue() {
-        XCTAssertEqual(IPMsgCommand(rawValue: 0x00020000), .AVATAR)
-        XCTAssertEqual(IPMsgCommand(rawValue: 0x00030000), .GETAVATAR)
-        XCTAssertEqual(IPMsgCommand(rawValue: 0x00010000), .RECALLMSG)
-        XCTAssertEqual(IPMsgCommand(rawValue: 0x00040000), .TYPING)
-        XCTAssertEqual(IPMsgCommand(rawValue: 0x00050000), .STOPTYPING)
-        XCTAssertEqual(IPMsgCommand(rawValue: 0x00060000), .RECALLLIST)
-    }
+@Test("头像命令数据包编码解码")
+func avatarCommandPacketEncodeDecode() throws {
+    let packet = IPMsgPacket(
+        version: 1,
+        packetNo: 500,
+        sender: "user1",
+        hostname: "host1",
+        command: .AVATAR,
+        payload: "avatar_hash:abc123"
+    )
 
-    func testAvatarCommandPacketEncodeDecode() throws {
-        let packet = IPMsgPacket(
-            version: 1,
-            packetNo: 500,
-            sender: "user1",
-            hostname: "host1",
-            command: .AVATAR,
-            payload: "avatar_hash:abc123"
-        )
+    let encoded = packet.encode()
+    #expect(encoded == "1:500:user1:host1:131072:avatar_hash:abc123")
 
-        let encoded = packet.encode()
-        XCTAssertEqual(encoded, "1:500:user1:host1:131072:avatar_hash:abc123")
+    let decoded = try IPMsgPacket.decode(encoded)
+    #expect(decoded.command == .AVATAR)
+    #expect(decoded.payload == "avatar_hash:abc123")
+}
 
-        let decoded = try IPMsgPacket.decode(encoded)
-        XCTAssertEqual(decoded.command, .AVATAR)
-        XCTAssertEqual(decoded.payload, "avatar_hash:abc123")
-    }
+@Test("获取头像命令数据包编码解码")
+func getAvatarCommandPacketEncodeDecode() throws {
+    let packet = IPMsgPacket(
+        version: 1,
+        packetNo: 501,
+        sender: "user2",
+        hostname: "host2",
+        command: .GETAVATAR,
+        payload: "request_avatar"
+    )
 
-    func testGetAvatarCommandPacketEncodeDecode() throws {
-        let packet = IPMsgPacket(
-            version: 1,
-            packetNo: 501,
-            sender: "user2",
-            hostname: "host2",
-            command: .GETAVATAR,
-            payload: "request_avatar"
-        )
-
-        let encoded = packet.encode()
-        let decoded = try IPMsgPacket.decode(encoded)
-        XCTAssertEqual(decoded.command, .GETAVATAR)
-        XCTAssertEqual(decoded.payload, "request_avatar")
-    }
+    let encoded = packet.encode()
+    let decoded = try IPMsgPacket.decode(encoded)
+    #expect(decoded.command == .GETAVATAR)
+    #expect(decoded.payload == "request_avatar")
 }
