@@ -53,25 +53,29 @@ FluxQ 是一款完全复刻飞秋(FeiQ)功能的跨平台即时通讯应用,支�
 
 ## 功能
 
-### v1.0.0 - 局域网即时通讯
+### v0.1.0 - 基础框架 ✅ (已完成)
 
-- ✅ **用户发现**: UDP 广播自动发现局域网用户
-- ✅ **即时消息**: TCP 可靠消息传输
-- ✅ **群组聊天**: 创建和管理群组
-- ✅ **文件传输**: 大文件分块传输,断点续传
-- ✅ **截图**: 平台特定截图捕获
-- ✅ **系统集成**: 托盘/通知/自动启动
-- ✅ **飞秋兼容**: 与原版飞秋互操作
+- ✅ **Xcode 多平台项目**: macOS 14+, iOS 17+, watchOS 10+
+- ✅ **SwiftData 数据模型**: User, Message, Conversation
+- ✅ **主界面 TabView**: 消息、通讯录、发现、我（4 个 tabs）
+- ✅ **主题系统**: 浅色/深色/系统主题切换
+- ✅ **watchOS 基础界面**: MessageListView
+
+### v0.2.0 - 网络通信 🚧 (开发中)
+
+- 🚧 **IPMsg 协议**: UDP 广播 + TCP 消息
+- 🚧 **用户发现**: 局域网自动发现
+- 🚧 **消息收发**: 实时文本消息
 
 ### 未来版本
-
-- **v2.0.0**: OpenClaw AI 助手集成
-- **v3.0.0**: 多 LLM 聊天机器人平台
-- **v4.0.0**: 云端即时通讯(混合 LAN/Server 模式)
 
 详见 [路线图](docs/plans/roadmap.md)。
 
 ## 安装
+
+### 当前状态
+
+**v0.1.0 开发版**：基础框架已完成，可运行查看 UI 界面。网络通信功能正在开发中（v0.2.0）。
 
 ### 从源码构建
 
@@ -81,7 +85,7 @@ git clone git@github.com:martinadamsdev/FluxQ.git
 cd FluxQ
 
 # 打开 Xcode 项目
-open FluxQ.xcworkspace
+open FluxQ.xcodeproj
 
 # 在 Xcode 中选择 target 和目标设备,然后构建运行 (⌘R)
 ```
@@ -95,6 +99,20 @@ open FluxQ.xcworkspace
 - macOS: DMG 安装包
 - iOS/iPadOS: TestFlight / App Store
 - watchOS: 通过 iOS 应用自动安装
+
+## 界面预览
+
+### macOS
+![macOS 主界面](docs/images/macos-main.png)
+
+### iOS
+![iOS TabView](docs/images/ios-tabs.png)
+![主题切换](docs/images/ios-theme.png)
+
+### watchOS
+![消息列表](docs/images/watch-messages.png)
+
+> 注：截图为 v0.1.0 基础框架，网络通信功能将在 v0.2.0 中实现。
 
 ## 使用
 
@@ -226,7 +244,7 @@ FluxQ 实现 IPMsg (IP Messenger) 协议:
 
 ## 许可证
 
-FluxQ 采用 BSD 许可证。详见 [LICENSE](LICENSE) 文件。
+FluxQ 采用 MIT 许可证。详见 [LICENSE](LICENSE) 文件。
 
 ## 致谢
 
