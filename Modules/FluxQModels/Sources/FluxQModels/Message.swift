@@ -10,6 +10,8 @@ public final class Message {
     public var timestamp: Date
     public var status: MessageStatus
     public var isEncrypted: Bool
+    public var isRecalled: Bool
+    public var recalledAt: Date?
 
     public init(
         id: String = UUID().uuidString,
@@ -18,7 +20,9 @@ public final class Message {
         content: String,
         timestamp: Date = Date(),
         status: MessageStatus = .sending,
-        isEncrypted: Bool = false
+        isEncrypted: Bool = false,
+        isRecalled: Bool = false,
+        recalledAt: Date? = nil
     ) {
         self.id = id
         self.conversationID = conversationID
@@ -27,5 +31,7 @@ public final class Message {
         self.timestamp = timestamp
         self.status = status
         self.isEncrypted = isEncrypted
+        self.isRecalled = isRecalled
+        self.recalledAt = recalledAt
     }
 }
