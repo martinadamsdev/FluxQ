@@ -25,41 +25,44 @@ public final class NetworkManager: ObservableObject {
     /// 发现的用户
     @Published public private(set) var discoveredUsers: [String: DiscoveredUser] = [:]
 
-    private let port: NWEndpoint.Port
-    private var listener: NWListener?
-    private var connections: [String: NWConnection] = [:]
+    private let portNumber: UInt16
+    private let transport: NetworkTransport
     private var packetNumber: Int = 0
 
     // MARK: - Initialization
 
-    public init(port: UInt16 = 2425) {
-        self.port = NWEndpoint.Port(rawValue: port)!
+    public init(port: UInt16 = 2425, transport: NetworkTransport? = nil) {
+        self.portNumber = port
+        self.transport = transport ?? NWNetworkTransport()
+        setupTransportCallbacks()
+    }
+
+    private func setupTransportCallbacks() {
+        transport.onDataReceived = { [weak self] data, host in
+            guard let self = self else { return }
+            if let message = String(data: data, encoding: .utf8) {
+                self.handleReceivedMessage(message, fromHost: host)
+            }
+        }
+
+        transport.onListenerStateChanged = { [weak self] state in
+            _ = self
+            switch state {
+            case .ready:
+                print("NetworkManager: 监听器已就绪")
+            case .failed(let error):
+                print("NetworkManager: 监听器失败 - \(error)")
+            case .cancelled:
+                print("NetworkManager: 监听器已取消")
+            }
+        }
     }
 
     // MARK: - Public Methods
 
     /// 启动网络服务
     public func start() throws {
-        // 创建 UDP 监听器
-        let parameters = NWParameters.udp
-        parameters.allowLocalEndpointReuse = true
-
-        let listener = try NWListener(using: parameters, on: port)
-
-        listener.stateUpdateHandler = { [weak self] state in
-            Task { @MainActor in
-                self?.handleListenerState(state)
-            }
-        }
-
-        listener.newConnectionHandler = { [weak self] connection in
-            Task { @MainActor in
-                self?.handleNewConnection(connection)
-            }
-        }
-
-        listener.start(queue: .main)
-        self.listener = listener
+        try transport.startListening(port: portNumber)
 
         // 发送上线广播
         try sendBroadcast(command: .BR_ENTRY)
@@ -71,12 +74,7 @@ public final class NetworkManager: ObservableObject {
         try? sendBroadcast(command: .BR_EXIT)
 
         // 停止监听器
-        listener?.cancel()
-        listener = nil
-
-        // 关闭所有连接
-        connections.values.forEach { $0.cancel() }
-        connections.removeAll()
+        transport.stopListening()
 
         // 清空发现的用户
         discoveredUsers.removeAll()
@@ -85,31 +83,9 @@ public final class NetworkManager: ObservableObject {
     /// 发送广播
     public func sendBroadcast(command: IPMsgCommand, payload: String = "") throws {
         let packet = createPacket(command: command, payload: payload)
-        let message = packet.encode().data(using: .utf8)!
+        let data = packet.encode().data(using: .utf8)!
 
-        // 创建广播连接
-        let host = NWEndpoint.Host("255.255.255.255")
-        let connection = NWConnection(
-            host: host,
-            port: port,
-            using: .udp
-        )
-
-        connection.stateUpdateHandler = { state in
-            if case .ready = state {
-                connection.send(
-                    content: message,
-                    completion: .contentProcessed { error in
-                        if let error = error {
-                            print("发送广播失败: \(error)")
-                        }
-                        connection.cancel()
-                    }
-                )
-            }
-        }
-
-        connection.start(queue: .main)
+        try transport.sendBroadcast(data: data, port: portNumber)
     }
 
     /// 发送消息给指定用户
@@ -117,79 +93,18 @@ public final class NetworkManager: ObservableObject {
         let packet = createPacket(command: .SENDMSG, payload: message)
         let data = packet.encode().data(using: .utf8)!
 
-        let connection = getOrCreateConnection(to: user)
-
-        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
-            connection.send(
-                content: data,
-                completion: .contentProcessed { error in
-                    if let error = error {
-                        continuation.resume(throwing: IPMsgError.networkError(error.localizedDescription))
-                    } else {
-                        continuation.resume()
-                    }
-                }
-            )
-        }
+        try await transport.send(data: data, to: user.ipAddress, port: UInt16(user.port))
     }
 
     // MARK: - Private Methods
 
-    private func handleListenerState(_ state: NWListener.State) {
-        switch state {
-        case .ready:
-            print("NetworkManager: 监听器已就绪，端口 \(port)")
-        case .failed(let error):
-            print("NetworkManager: 监听器失败 - \(error)")
-        case .cancelled:
-            print("NetworkManager: 监听器已取消")
-        default:
-            break
-        }
-    }
-
-    private func handleNewConnection(_ connection: NWConnection) {
-        connection.stateUpdateHandler = { [weak self] state in
-            Task { @MainActor in
-                if case .ready = state {
-                    self?.receiveMessage(from: connection)
-                }
-            }
-        }
-
-        connection.start(queue: .main)
-    }
-
-    private func receiveMessage(from connection: NWConnection) {
-        connection.receiveMessage { [weak self] data, context, isComplete, error in
-            Task { @MainActor in
-                guard let self = self else { return }
-
-                if let error = error {
-                    print("NetworkManager: 接收消息错误 - \(error)")
-                    return
-                }
-
-                if let data = data, let message = String(data: data, encoding: .utf8) {
-                    self.handleReceivedMessage(message, from: connection)
-                }
-
-                // 继续接收下一条消息
-                if !isComplete {
-                    self.receiveMessage(from: connection)
-                }
-            }
-        }
-    }
-
-    private func handleReceivedMessage(_ message: String, from connection: NWConnection) {
+    private func handleReceivedMessage(_ message: String, fromHost host: String) {
         do {
             let packet = try IPMsgPacket.decode(message)
 
-            // 处理不同类型的命令
             switch packet.command {
             case .BR_ENTRY, .ANSENTRY:
-                handleUserEntry(packet, from: connection)
+                handleUserEntry(packet, fromHost: host)
             case .BR_EXIT:
                 handleUserExit(packet)
             case .SENDMSG:
@@ -202,15 +117,12 @@ public final class NetworkManager: ObservableObject {
         }
     }
 
-    private func handleUserEntry(_ packet: IPMsgPacket, from connection: NWConnection) {
-        // 从连接中获取 IP 地址
-        guard case let .hostPort(host, _) = connection.endpoint else { return }
-
+    private func handleUserEntry(_ packet: IPMsgPacket, fromHost host: String) {
         let user = DiscoveredUser(
             id: packet.sender,
             nickname: packet.sender,
             hostname: packet.hostname,
-            ipAddress: host.debugDescription
+            ipAddress: host
         )
 
         discoveredUsers[user.id] = user
@@ -244,24 +156,6 @@ public final class NetworkManager: ObservableObject {
             command: command,
             payload: payload
         )
-    }
-
-    private func getOrCreateConnection(to user: DiscoveredUser) -> NWConnection {
-        if let existing = connections[user.id] {
-            return existing
-        }
-
-        let host = NWEndpoint.Host(user.ipAddress)
-        let connection = NWConnection(
-            host: host,
-            port: NWEndpoint.Port(rawValue: UInt16(user.port))!,
-            using: .udp
-        )
-
-        connection.start(queue: .main)
-        connections[user.id] = connection
-
-        return connection
     }
 
     private func getDeviceName() -> String {
