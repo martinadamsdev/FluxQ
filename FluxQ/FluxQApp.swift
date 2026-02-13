@@ -41,5 +41,10 @@ struct FluxQApp: App {
                 .themedColorScheme(themeManager)
         }
         .modelContainer(sharedModelContainer)
+        #if os(macOS)
+        .commands {
+            NavigationCommands()
+        }
+        #endif
     }
 }

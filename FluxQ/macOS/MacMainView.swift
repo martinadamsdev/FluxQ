@@ -1,15 +1,27 @@
 import SwiftUI
 
+/// macOS 导航 tab 的 FocusedValue key
+struct SelectedTabKey: FocusedValueKey {
+    typealias Value = Binding<AppNavigationItem>
+}
+
+extension FocusedValues {
+    var selectedTab: Binding<AppNavigationItem>? {
+        get { self[SelectedTabKey.self] }
+        set { self[SelectedTabKey.self] = newValue }
+    }
+}
+
 /// macOS 主视图 - 三栏布局
 struct MacMainView: View {
-    @State private var selectedTab: MacNavigationItem = .messages
+    @State private var selectedTab: AppNavigationItem = .messages
     @State private var selectedConversation: UUID?
     @State private var selectedContact: UUID?
 
     var body: some View {
         NavigationSplitView {
             // 第一栏：侧边栏导航
-            MacSidebarView(selection: $selectedTab)
+            SidebarView(selection: $selectedTab)
         } content: {
             // 第二栏：内容列表（根据选中的 tab 变化）
             contentColumn
@@ -18,6 +30,7 @@ struct MacMainView: View {
             detailColumn
         }
         .navigationSplitViewStyle(.balanced)
+        .focusedSceneValue(\.selectedTab, $selectedTab)
     }
 
     @ViewBuilder
@@ -44,6 +57,35 @@ struct MacMainView: View {
             DiscoveryView()
         case .settings:
             SettingsView()
+        }
+    }
+}
+
+/// macOS 键盘快捷键命令
+struct NavigationCommands: Commands {
+    @FocusedBinding(\.selectedTab) private var selectedTab
+
+    var body: some Commands {
+        CommandGroup(replacing: .sidebar) {
+            Button("消息") {
+                selectedTab = .messages
+            }
+            .keyboardShortcut("1", modifiers: .command)
+
+            Button("通讯录") {
+                selectedTab = .contacts
+            }
+            .keyboardShortcut("2", modifiers: .command)
+
+            Button("发现") {
+                selectedTab = .discovery
+            }
+            .keyboardShortcut("3", modifiers: .command)
+
+            Button("我") {
+                selectedTab = .settings
+            }
+            .keyboardShortcut("4", modifiers: .command)
         }
     }
 }
