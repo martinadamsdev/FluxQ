@@ -46,48 +46,65 @@ FluxQ/
 └── Tests/
 ```
 
-## 调试构建
+## 构建步骤
 
-### macOS
+### macOS 应用
 
 ```bash
-# 命令行构建
-xcodebuild -workspace FluxQ.xcworkspace \
+xcodebuild -project FluxQ.xcodeproj \
            -scheme FluxQ \
            -destination 'platform=macOS' \
            build
-
-# 或在 Xcode 中
-# 1. 选择 FluxQ scheme
-# 2. 选择 My Mac 目标
-# 3. Product > Run (⌘R)
 ```
 
-### iOS / iPadOS
+**预期输出**: `** BUILD SUCCEEDED **`
+
+### iOS 应用
 
 ```bash
-# 命令行构建(模拟器)
-xcodebuild -workspace FluxQ.xcworkspace \
-           -scheme FluxQ \
-           -destination 'platform=iOS Simulator,name=iPhone 15 Pro' \
-           build
+# 查看可用模拟器
+xcrun simctl list devices | grep iPhone
 
-# 或在 Xcode 中
-# 1. 选择 FluxQ scheme
-# 2. 选择模拟器或真机
-# 3. Product > Run (⌘R)
+# 构建（使用 iPhone 17 Pro）
+xcodebuild -project FluxQ.xcodeproj \
+           -scheme FluxQ \
+           -destination 'platform=iOS Simulator,name=iPhone 17 Pro' \
+           build
 ```
+
+**预期输出**: `** BUILD SUCCEEDED **`
+
+### watchOS 应用
+
+```bash
+# 查看可用 Watch 模拟器
+xcrun simctl list devices | grep "Apple Watch"
+
+# 构建（使用 Apple Watch Series 11）
+xcodebuild -project FluxQ.xcodeproj \
+           -scheme FluxQWatch \
+           -destination 'platform=watchOS Simulator,name=Apple Watch Series 11 (46mm)' \
+           build
+```
+
+**预期输出**: `** BUILD SUCCEEDED **`
+
+## 平台特定注意事项
+
+### macOS
+- **最低版本**: macOS 14 (Sonoma)
+- **架构**: Apple Silicon (arm64) 或 Intel (x86_64)
+- **权限**: 无需特殊权限（v0.1.0）
+
+### iOS/iPadOS
+- **最低版本**: iOS 17
+- **模拟器推荐**: iPhone 17 系列（最新特性支持）
+- **真机测试**: 需要 Apple Developer 账号
 
 ### watchOS
-
-watchOS 应用通过配对的 iOS 应用自动安装。
-
-```bash
-# 在 Xcode 中
-# 1. 选择 FluxQWatch scheme
-# 2. 选择 Watch 模拟器
-# 3. Product > Run (⌘R)
-```
+- **最低版本**: watchOS 10
+- **模拟器**: 需要配对 iOS 模拟器
+- **限制**: v0.1.0 仅支持基础 UI
 
 ## 运行测试
 
@@ -192,14 +209,30 @@ swiftlint lint
 
 ## 常见问题
 
-### Q: 编译失败,提示找不到模块
+### 如何选择模拟器？
 
-A: 清理构建缓存:
+使用以下命令查看所有可用模拟器：
 ```bash
-rm -rf ~/Library/Developer/Xcode/DerivedData
+xcrun simctl list devices available
 ```
 
-然后重新构建。
+### 如何清理构建缓存？
+
+```bash
+# 清理 Xcode 缓存
+rm -rf ~/Library/Developer/Xcode/DerivedData/FluxQ-*
+
+# 清理 Swift Package 缓存
+rm -rf Modules/*/.build
+rm -rf Modules/*/.swiftpm
+```
+
+### 编译失败怎么办？
+
+1. 确认 Xcode 版本 >= 15.0
+2. 确认系统版本满足最低要求
+3. 清理构建缓存后重试
+4. 检查 Swift Package 依赖是否正确解析
 
 ### Q: SwiftData 模型迁移错误
 
