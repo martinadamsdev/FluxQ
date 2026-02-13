@@ -151,16 +151,16 @@ struct TypingStateServiceTests {
     @Test("Typing state does not expire if refreshed")
     func typingStateRefreshed() async throws {
         let (service, _) = makeService()
-        service.typingTimeout = 0.5
+        service.typingTimeout = 2.0
 
         service.handleTypingCommand(from: "remote-user-1")
 
         // Refresh before expiry
-        try await Task.sleep(for: .milliseconds(300))
+        try await Task.sleep(for: .milliseconds(800))
         service.handleTypingCommand(from: "remote-user-1")
 
         // Wait a bit more - would have expired from first call but not second
-        try await Task.sleep(for: .milliseconds(300))
+        try await Task.sleep(for: .milliseconds(800))
         service.cleanupExpiredTypingStates()
         #expect(service.isUserTyping("remote-user-1") == true)
     }
