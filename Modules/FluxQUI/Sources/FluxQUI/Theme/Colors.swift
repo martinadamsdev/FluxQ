@@ -6,10 +6,12 @@ extension Color {
 
     // 聊天气泡颜色
     public static let fluxqBubbleMe = Color.fluxqGreen
-    #if os(iOS) || os(watchOS)
+    #if os(iOS)
     public static let fluxqBubbleOther = Color(.systemGray5)
     #elseif os(macOS)
     public static let fluxqBubbleOther = Color(nsColor: .controlBackgroundColor)
+    #elseif os(watchOS)
+    public static let fluxqBubbleOther = Color.gray.opacity(0.2)
     #endif
 
     // 状态颜色
