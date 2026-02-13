@@ -17,6 +17,7 @@ public enum UserStatus: String, Codable, CaseIterable {
 }
 
 public enum MessageStatus: String, Codable {
+    case pending
     case sending
     case sent
     case delivered

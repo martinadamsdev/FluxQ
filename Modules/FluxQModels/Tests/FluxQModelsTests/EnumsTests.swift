@@ -60,14 +60,15 @@ struct EnumsTests {
 
     // MARK: - MessageStatus
 
-    @Test("MessageStatus has all 5 cases")
+    @Test("MessageStatus has all 6 cases")
     func messageStatusCases() {
-        let allStatuses: [MessageStatus] = [.sending, .sent, .delivered, .read, .failed]
-        #expect(allStatuses.count == 5)
+        let allStatuses: [MessageStatus] = [.pending, .sending, .sent, .delivered, .read, .failed]
+        #expect(allStatuses.count == 6)
     }
 
     @Test("MessageStatus raw values are correct strings")
     func messageStatusRawValues() {
+        #expect(MessageStatus.pending.rawValue == "pending")
         #expect(MessageStatus.sending.rawValue == "sending")
         #expect(MessageStatus.sent.rawValue == "sent")
         #expect(MessageStatus.delivered.rawValue == "delivered")
