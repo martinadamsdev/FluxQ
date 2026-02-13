@@ -12,7 +12,8 @@ public final class User {
     public var status: UserStatus
     public var isOnline: Bool
     public var lastSeen: Date
-    public var avatar: Data?
+    public var avatarData: Data?
+    public var avatarHash: String?
 
     @Relationship(deleteRule: .cascade, inverse: \Conversation.participants)
     public var conversations: [Conversation]?
@@ -27,7 +28,8 @@ public final class User {
         status: UserStatus = .online,
         isOnline: Bool = true,
         lastSeen: Date = Date(),
-        avatar: Data? = nil
+        avatarData: Data? = nil,
+        avatarHash: String? = nil
     ) {
         self.id = id
         self.nickname = nickname
@@ -38,6 +40,7 @@ public final class User {
         self.status = status
         self.isOnline = isOnline
         self.lastSeen = lastSeen
-        self.avatar = avatar
+        self.avatarData = avatarData
+        self.avatarHash = avatarHash
     }
 }
