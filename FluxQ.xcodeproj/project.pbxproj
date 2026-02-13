@@ -6,6 +6,10 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		AA00000A002F3F509400A847 /* FluxQWatch.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = AA000002002F3F509400A847 /* FluxQWatch.app */; platformFilter = ios; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		615731E92F3F509400A847AB /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -29,6 +33,20 @@
 			remoteInfo = FluxQWatch;
 		};
 /* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		AA000009002F3F509400A847 /* Embed Watch Content */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "$(CONTENTS_FOLDER_PATH)/Watch";
+			dstSubfolderSpec = 16;
+			files = (
+				AA00000A002F3F509400A847 /* FluxQWatch.app in Embed Watch Content */,
+			);
+			name = "Embed Watch Content";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		615731D72F3F509300A847AB /* FluxQ.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FluxQ.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -345,34 +363,11 @@
 		};
 		AA000008002F3F509400A847 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			platformFilters = (
-				ios,
-			);
+			platformFilter = ios;
 			target = AA000003002F3F509400A847 /* FluxQWatch */;
 			targetProxy = AA000001002F3F509400A847 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
-
-/* Begin PBXCopyFilesBuildPhase section */
-		AA000009002F3F509400A847 /* Embed Watch Content */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = "$(CONTENTS_FOLDER_PATH)/Watch";
-			dstSubfolderSpec = 16;
-			files = (
-				AA00000A002F3F509400A847 /* FluxQWatch.app in Embed Watch Content */,
-			);
-			name = "Embed Watch Content";
-			platformFilters = (
-				ios,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-/* End PBXCopyFilesBuildPhase section */
-
-/* Begin PBXBuildFile section */
-		AA00000A002F3F509400A847 /* FluxQWatch.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = AA000002002F3F509400A847 /* FluxQWatch.app */; platformFilters = (ios, ); settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
-/* End PBXBuildFile section */
 
 /* Begin XCBuildConfiguration section */
 		615731FC2F3F509400A847AB /* Debug */ = {

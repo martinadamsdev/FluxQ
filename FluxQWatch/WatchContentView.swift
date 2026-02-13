@@ -1,5 +1,5 @@
 //
-//  ContentView.swift
+//  WatchContentView.swift
 //  FluxQWatch
 //
 //  Created by martinadamsdev on 2026/2/13.
@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct ContentView: View {
+struct WatchContentView: View {
     var body: some View {
         VStack {
             Image(systemName: "message.fill")
@@ -19,5 +19,5 @@ struct ContentView: View {
 }
 
 #Preview {
-    ContentView()
+    WatchContentView()
 }
