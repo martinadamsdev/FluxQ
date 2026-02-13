@@ -1,5 +1,7 @@
 import SwiftUI
 
+#if os(macOS)
+
 /// macOS 导航 tab 的 FocusedValue key
 struct SelectedTabKey: FocusedValueKey {
     typealias Value = Binding<AppNavigationItem>
@@ -94,3 +96,5 @@ struct NavigationCommands: Commands {
     MacMainView()
         .frame(width: 1200, height: 700)
 }
+
+#endif
