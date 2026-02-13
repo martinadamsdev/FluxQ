@@ -20,7 +20,7 @@ struct HeartbeatServiceTests {
     @Test("Record heartbeat marks user as online")
     func recordHeartbeat() {
         let service = HeartbeatService()
-        let userId = "test-user-123"
+        let userId = UUID()
         let now = Date()
 
         service.recordHeartbeat(userId: userId, at: now)
@@ -31,7 +31,7 @@ struct HeartbeatServiceTests {
     @Test("User becomes offline after timeout")
     func userTimeoutDetection() {
         let service = HeartbeatService()
-        let userId = "test-user-456"
+        let userId = UUID()
         let now = Date()
 
         service.recordHeartbeat(userId: userId, at: now)
@@ -45,7 +45,7 @@ struct HeartbeatServiceTests {
     @Test("Check timeouts removes timed-out users progressively")
     func checkTimeoutsProgressive() {
         let service = HeartbeatService()
-        let userId = "test-user-789"
+        let userId = UUID()
         let now = Date()
 
         service.recordHeartbeat(userId: userId, at: now)
@@ -67,13 +67,13 @@ struct HeartbeatServiceTests {
     @Test("Unknown user is not online")
     func unknownUserNotOnline() {
         let service = HeartbeatService()
-        #expect(service.isUserOnline("nonexistent") == false)
+        #expect(service.isUserOnline(UUID()) == false)
     }
 
     @Test("Re-heartbeat resets timeout")
     func reHeartbeatResetsTimeout() {
         let service = HeartbeatService()
-        let userId = "test-user-reset"
+        let userId = UUID()
         let now = Date()
 
         service.recordHeartbeat(userId: userId, at: now)

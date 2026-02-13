@@ -4,19 +4,32 @@ import Testing
 
 @Test("用户初始化")
 func userInitialization() {
+    let testId = UUID(uuidString: "00000000-0000-0000-0000-000000000001")!
     let user = User(
-        id: "192.168.1.100:2425",
+        id: testId,
         nickname: "Alice",
         hostname: "MacBook-Pro",
         ipAddress: "192.168.1.100"
     )
 
-    #expect(user.id == "192.168.1.100:2425")
+    #expect(user.id == testId)
     #expect(user.nickname == "Alice")
     #expect(user.ipAddress == "192.168.1.100")
     #expect(user.port == 2425)
     #expect(user.isOnline)
     #expect(user.status == .online)
+}
+
+@Test("用户默认ID自动生成")
+func userDefaultId() {
+    let user = User(
+        nickname: "Alice",
+        hostname: "MacBook-Pro",
+        ipAddress: "192.168.1.100"
+    )
+
+    // id should be a valid UUID (it always is since it's UUID type)
+    #expect(user.id != UUID())
 }
 
 @Test("用户状态显示名称")
@@ -31,7 +44,7 @@ func userStatusDisplayName() {
 func avatarDataPersistence() {
     let sampleData = Data([0x89, 0x50, 0x4E, 0x47]) // PNG header bytes
     let user = User(
-        id: "192.168.1.101:2425",
+        id: UUID(uuidString: "00000000-0000-0000-0000-000000000002")!,
         nickname: "Bob",
         hostname: "iMac-Pro",
         ipAddress: "192.168.1.101",
@@ -44,7 +57,7 @@ func avatarDataPersistence() {
 
     // Test nil defaults
     let userNoAvatar = User(
-        id: "192.168.1.102:2425",
+        id: UUID(uuidString: "00000000-0000-0000-0000-000000000003")!,
         nickname: "Charlie",
         hostname: "MacBook-Air",
         ipAddress: "192.168.1.102"
@@ -57,7 +70,7 @@ func avatarDataPersistence() {
 func onlineStatusTracking() {
     let specificDate = Date(timeIntervalSince1970: 1700000000)
     let user = User(
-        id: "192.168.1.103:2425",
+        id: UUID(uuidString: "00000000-0000-0000-0000-000000000004")!,
         nickname: "Dave",
         hostname: "Mac-Mini",
         ipAddress: "192.168.1.103",
@@ -70,7 +83,7 @@ func onlineStatusTracking() {
 
     // Test default values
     let onlineUser = User(
-        id: "192.168.1.104:2425",
+        id: UUID(uuidString: "00000000-0000-0000-0000-000000000005")!,
         nickname: "Eve",
         hostname: "MacBook",
         ipAddress: "192.168.1.104"

@@ -19,10 +19,10 @@ public final class HeartbeatService: ObservableObject {
     // MARK: - State
 
     /// Tracks last heartbeat time for each user ID
-    public private(set) var onlineUsers: [String: Date] = [:]
+    public private(set) var onlineUsers: [UUID: Date] = [:]
 
     /// Tracks missed heartbeat count per user for progressive removal
-    private var missedHeartbeats: [String: Int] = [:]
+    private var missedHeartbeats: [UUID: Int] = [:]
 
     private var heartbeatTask: Task<Void, Never>?
     private var timeoutMonitorTask: Task<Void, Never>?
@@ -39,13 +39,13 @@ public final class HeartbeatService: ObservableObject {
     // MARK: - Public Methods
 
     /// Record a heartbeat from a user
-    public func recordHeartbeat(userId: String, at date: Date = Date()) {
+    public func recordHeartbeat(userId: UUID, at date: Date = Date()) {
         onlineUsers[userId] = date
         missedHeartbeats[userId] = 0
     }
 
     /// Check if a user is currently online
-    public func isUserOnline(_ userId: String, at currentTime: Date = Date()) -> Bool {
+    public func isUserOnline(_ userId: UUID, at currentTime: Date = Date()) -> Bool {
         guard let lastSeen = onlineUsers[userId] else {
             return false
         }

@@ -21,10 +21,11 @@ struct RecallServiceTests {
     @Test("canRecall returns true within time window for own message")
     func canRecallWithinWindow() {
         let (service, _) = makeService()
+        let myId = UUID()
         let result = service.canRecall(
             messageTimestamp: Date(),
-            senderID: "me",
-            currentUserID: "me",
+            senderID: myId,
+            currentUserID: myId,
             isRecalled: false
         )
         #expect(result == true)
@@ -33,10 +34,11 @@ struct RecallServiceTests {
     @Test("canRecall returns false when time window has expired")
     func canRecallExpired() {
         let (service, _) = makeService(recallWindow: 120)
+        let myId = UUID()
         let result = service.canRecall(
             messageTimestamp: Date().addingTimeInterval(-200),
-            senderID: "me",
-            currentUserID: "me",
+            senderID: myId,
+            currentUserID: myId,
             isRecalled: false
         )
         #expect(result == false)
@@ -47,8 +49,8 @@ struct RecallServiceTests {
         let (service, _) = makeService()
         let result = service.canRecall(
             messageTimestamp: Date(),
-            senderID: "other-user",
-            currentUserID: "me",
+            senderID: UUID(),
+            currentUserID: UUID(),
             isRecalled: false
         )
         #expect(result == false)
@@ -57,10 +59,11 @@ struct RecallServiceTests {
     @Test("canRecall returns false for already recalled message")
     func canRecallAlreadyRecalled() {
         let (service, _) = makeService()
+        let myId = UUID()
         let result = service.canRecall(
             messageTimestamp: Date(),
-            senderID: "me",
-            currentUserID: "me",
+            senderID: myId,
+            currentUserID: myId,
             isRecalled: true
         )
         #expect(result == false)
@@ -71,10 +74,11 @@ struct RecallServiceTests {
     @Test("recallMessage succeeds within time window")
     func recallMessageSuccess() throws {
         let (service, _) = makeService()
+        let myId = UUID()
         try service.recallMessage(
-            messageID: "msg-1",
-            senderID: "me",
-            currentUserID: "me",
+            messageID: UUID(),
+            senderID: myId,
+            currentUserID: myId,
             messageTimestamp: Date(),
             isRecalled: false
         )
@@ -83,11 +87,12 @@ struct RecallServiceTests {
     @Test("recallMessage throws timeoutExpired when window has passed")
     func recallMessageTimeout() {
         let (service, _) = makeService(recallWindow: 120)
+        let myId = UUID()
         #expect(throws: RecallError.timeoutExpired) {
             try service.recallMessage(
-                messageID: "msg-1",
-                senderID: "me",
-                currentUserID: "me",
+                messageID: UUID(),
+                senderID: myId,
+                currentUserID: myId,
                 messageTimestamp: Date().addingTimeInterval(-200),
                 isRecalled: false
             )
@@ -99,9 +104,9 @@ struct RecallServiceTests {
         let (service, _) = makeService()
         #expect(throws: RecallError.notAuthorized) {
             try service.recallMessage(
-                messageID: "msg-1",
-                senderID: "other-user",
-                currentUserID: "me",
+                messageID: UUID(),
+                senderID: UUID(),
+                currentUserID: UUID(),
                 messageTimestamp: Date(),
                 isRecalled: false
             )
@@ -111,11 +116,12 @@ struct RecallServiceTests {
     @Test("recallMessage throws alreadyRecalled for recalled message")
     func recallMessageAlreadyRecalled() {
         let (service, _) = makeService()
+        let myId = UUID()
         #expect(throws: RecallError.alreadyRecalled) {
             try service.recallMessage(
-                messageID: "msg-1",
-                senderID: "me",
-                currentUserID: "me",
+                messageID: UUID(),
+                senderID: myId,
+                currentUserID: myId,
                 messageTimestamp: Date(),
                 isRecalled: true
             )
@@ -125,10 +131,12 @@ struct RecallServiceTests {
     @Test("recallMessage sends RECALLMSG broadcast with message ID")
     func recallMessageSendsBroadcast() throws {
         let (service, transport) = makeService()
+        let myId = UUID()
+        let msgId = UUID()
         try service.recallMessage(
-            messageID: "msg-42",
-            senderID: "me",
-            currentUserID: "me",
+            messageID: msgId,
+            senderID: myId,
+            currentUserID: myId,
             messageTimestamp: Date(),
             isRecalled: false
         )
@@ -138,21 +146,23 @@ struct RecallServiceTests {
         let message = String(data: data, encoding: .utf8)!
         let packet = try IPMsgPacket.decode(message)
         #expect(packet.command == .RECALLMSG)
-        #expect(packet.payload == "msg-42")
+        #expect(packet.payload == msgId.uuidString)
     }
 
     @Test("recallMessage records to recentRecalls on success")
     func recallMessageRecordsRecall() throws {
         let (service, _) = makeService()
+        let myId = UUID()
+        let msgId = UUID()
         try service.recallMessage(
-            messageID: "msg-1",
-            senderID: "me",
-            currentUserID: "me",
+            messageID: msgId,
+            senderID: myId,
+            currentUserID: myId,
             messageTimestamp: Date(),
             isRecalled: false
         )
 
-        #expect(service.recentRecalls["msg-1"] != nil)
+        #expect(service.recentRecalls[msgId] != nil)
     }
 
     // MARK: - handleRecallCommand
@@ -160,8 +170,9 @@ struct RecallServiceTests {
     @Test("handleRecallCommand adds message to recentRecalls")
     func handleRecallCommandAdds() {
         let (service, _) = makeService()
-        service.handleRecallCommand(messageID: "msg-99", from: "remote-user")
-        #expect(service.recentRecalls["msg-99"] != nil)
+        let msgId = UUID()
+        service.handleRecallCommand(messageID: msgId, from: UUID())
+        #expect(service.recentRecalls[msgId] != nil)
     }
 
     // MARK: - isMessageRecalled
@@ -169,14 +180,15 @@ struct RecallServiceTests {
     @Test("isMessageRecalled returns true for recalled message")
     func isMessageRecalledTrue() {
         let (service, _) = makeService()
-        service.handleRecallCommand(messageID: "msg-1", from: "remote-user")
-        #expect(service.isMessageRecalled("msg-1") == true)
+        let msgId = UUID()
+        service.handleRecallCommand(messageID: msgId, from: UUID())
+        #expect(service.isMessageRecalled(msgId) == true)
     }
 
     @Test("isMessageRecalled returns false for unknown message")
     func isMessageRecalledFalse() {
         let (service, _) = makeService()
-        #expect(service.isMessageRecalled("unknown") == false)
+        #expect(service.isMessageRecalled(UUID()) == false)
     }
 
     // MARK: - cleanupExpiredRecalls
@@ -184,18 +196,20 @@ struct RecallServiceTests {
     @Test("cleanupExpiredRecalls removes records older than 24 hours")
     func cleanupExpiredRecalls() {
         let (service, _) = makeService()
+        let oldMsgId = UUID()
+        let newMsgId = UUID()
 
         // Insert an old recall (more than 24h ago)
-        service.handleRecallCommand(messageID: "old-msg", from: "user")
+        service.handleRecallCommand(messageID: oldMsgId, from: UUID())
         // Manually override to simulate an old entry
-        service.recentRecalls["old-msg"] = Date().addingTimeInterval(-90000)
+        service.recentRecalls[oldMsgId] = Date().addingTimeInterval(-90000)
 
         // Insert a recent recall
-        service.handleRecallCommand(messageID: "new-msg", from: "user")
+        service.handleRecallCommand(messageID: newMsgId, from: UUID())
 
         service.cleanupExpiredRecalls()
 
-        #expect(service.recentRecalls["old-msg"] == nil)
-        #expect(service.recentRecalls["new-msg"] != nil)
+        #expect(service.recentRecalls[oldMsgId] == nil)
+        #expect(service.recentRecalls[newMsgId] != nil)
     }
 }

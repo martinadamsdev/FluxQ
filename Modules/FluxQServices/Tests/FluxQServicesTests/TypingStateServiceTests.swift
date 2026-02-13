@@ -20,8 +20,9 @@ struct TypingStateServiceTests {
     @Test("startTyping sends TYPING command via broadcast")
     func startTypingSendsCommand() throws {
         let (service, transport) = makeService()
+        let userId = UUID()
 
-        try service.startTyping(to: "user-1")
+        try service.startTyping(to: userId)
 
         #expect(transport.broadcastMessages.count == 1)
         let data = transport.broadcastMessages[0].data
@@ -33,10 +34,11 @@ struct TypingStateServiceTests {
     @Test("startTyping debounces rapid calls within 1 second")
     func startTypingDebounces() throws {
         let (service, transport) = makeService()
+        let userId = UUID()
 
-        try service.startTyping(to: "user-1")
-        try service.startTyping(to: "user-1")
-        try service.startTyping(to: "user-1")
+        try service.startTyping(to: userId)
+        try service.startTyping(to: userId)
+        try service.startTyping(to: userId)
 
         // Only the first call should send, the rest are debounced
         #expect(transport.broadcastMessages.count == 1)
@@ -45,14 +47,15 @@ struct TypingStateServiceTests {
     @Test("startTyping sends again after debounce period expires")
     func startTypingSendsAfterDebounce() async throws {
         let (service, transport) = makeService()
+        let userId = UUID()
 
-        try service.startTyping(to: "user-1")
+        try service.startTyping(to: userId)
         #expect(transport.broadcastMessages.count == 1)
 
         // Wait for debounce period to expire
         try await Task.sleep(for: .milliseconds(1100))
 
-        try service.startTyping(to: "user-1")
+        try service.startTyping(to: userId)
         #expect(transport.broadcastMessages.count == 2)
     }
 
@@ -60,8 +63,8 @@ struct TypingStateServiceTests {
     func startTypingDifferentUsersNotDebounced() throws {
         let (service, transport) = makeService()
 
-        try service.startTyping(to: "user-1")
-        try service.startTyping(to: "user-2")
+        try service.startTyping(to: UUID())
+        try service.startTyping(to: UUID())
 
         #expect(transport.broadcastMessages.count == 2)
     }
@@ -71,8 +74,9 @@ struct TypingStateServiceTests {
     @Test("stopTyping sends STOPTYPING command via broadcast")
     func stopTypingSendsCommand() throws {
         let (service, transport) = makeService()
+        let userId = UUID()
 
-        try service.stopTyping(to: "user-1")
+        try service.stopTyping(to: userId)
 
         #expect(transport.broadcastMessages.count == 1)
         let data = transport.broadcastMessages[0].data
@@ -86,25 +90,27 @@ struct TypingStateServiceTests {
     @Test("handleTypingCommand adds user to typingUsers")
     func handleTypingCommandAddsUser() {
         let (service, _) = makeService()
+        let remoteUser = UUID()
 
-        service.handleTypingCommand(from: "remote-user-1")
+        service.handleTypingCommand(from: remoteUser)
 
-        #expect(service.isUserTyping("remote-user-1") == true)
-        #expect(service.typingUsers["remote-user-1"] != nil)
+        #expect(service.isUserTyping(remoteUser) == true)
+        #expect(service.typingUsers[remoteUser] != nil)
     }
 
     @Test("handleTypingCommand updates timestamp on repeated calls")
     func handleTypingCommandUpdatesTimestamp() throws {
         let (service, _) = makeService()
+        let remoteUser = UUID()
 
-        service.handleTypingCommand(from: "remote-user-1")
-        let firstTimestamp = service.typingUsers["remote-user-1"]!
+        service.handleTypingCommand(from: remoteUser)
+        let firstTimestamp = service.typingUsers[remoteUser]!
 
         // Small delay to get a different timestamp
         Thread.sleep(forTimeInterval: 0.01)
 
-        service.handleTypingCommand(from: "remote-user-1")
-        let secondTimestamp = service.typingUsers["remote-user-1"]!
+        service.handleTypingCommand(from: remoteUser)
+        let secondTimestamp = service.typingUsers[remoteUser]!
 
         #expect(secondTimestamp >= firstTimestamp)
     }
@@ -114,12 +120,13 @@ struct TypingStateServiceTests {
     @Test("handleStopTypingCommand removes user from typingUsers")
     func handleStopTypingCommandRemovesUser() {
         let (service, _) = makeService()
+        let remoteUser = UUID()
 
-        service.handleTypingCommand(from: "remote-user-1")
-        #expect(service.isUserTyping("remote-user-1") == true)
+        service.handleTypingCommand(from: remoteUser)
+        #expect(service.isUserTyping(remoteUser) == true)
 
-        service.handleStopTypingCommand(from: "remote-user-1")
-        #expect(service.isUserTyping("remote-user-1") == false)
+        service.handleStopTypingCommand(from: remoteUser)
+        #expect(service.isUserTyping(remoteUser) == false)
     }
 
     // MARK: - isUserTyping
@@ -127,7 +134,7 @@ struct TypingStateServiceTests {
     @Test("isUserTyping returns false for unknown user")
     func isUserTypingUnknown() {
         let (service, _) = makeService()
-        #expect(service.isUserTyping("nonexistent") == false)
+        #expect(service.isUserTyping(UUID()) == false)
     }
 
     // MARK: - Auto-expire
@@ -137,31 +144,33 @@ struct TypingStateServiceTests {
         let (service, _) = makeService()
         // Use a short timeout for testing
         service.typingTimeout = 0.5
+        let remoteUser = UUID()
 
-        service.handleTypingCommand(from: "remote-user-1")
-        #expect(service.isUserTyping("remote-user-1") == true)
+        service.handleTypingCommand(from: remoteUser)
+        #expect(service.isUserTyping(remoteUser) == true)
 
         // Wait for expiry
         try await Task.sleep(for: .milliseconds(700))
 
         service.cleanupExpiredTypingStates()
-        #expect(service.isUserTyping("remote-user-1") == false)
+        #expect(service.isUserTyping(remoteUser) == false)
     }
 
     @Test("Typing state does not expire if refreshed")
     func typingStateRefreshed() async throws {
         let (service, _) = makeService()
         service.typingTimeout = 2.0
+        let remoteUser = UUID()
 
-        service.handleTypingCommand(from: "remote-user-1")
+        service.handleTypingCommand(from: remoteUser)
 
         // Refresh before expiry
         try await Task.sleep(for: .milliseconds(800))
-        service.handleTypingCommand(from: "remote-user-1")
+        service.handleTypingCommand(from: remoteUser)
 
         // Wait a bit more - would have expired from first call but not second
         try await Task.sleep(for: .milliseconds(800))
         service.cleanupExpiredTypingStates()
-        #expect(service.isUserTyping("remote-user-1") == true)
+        #expect(service.isUserTyping(remoteUser) == true)
     }
 }

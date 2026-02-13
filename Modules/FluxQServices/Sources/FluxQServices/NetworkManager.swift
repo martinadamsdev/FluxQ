@@ -118,14 +118,16 @@ public final class NetworkManager: ObservableObject {
     }
 
     private func handleUserEntry(_ packet: IPMsgPacket, fromHost host: String) {
+        let existingId = discoveredUsers[packet.sender]?.id
         let user = DiscoveredUser(
-            id: packet.sender,
+            id: existingId ?? UUID(),
+            senderName: packet.sender,
             nickname: packet.sender,
             hostname: packet.hostname,
             ipAddress: host
         )
 
-        discoveredUsers[user.id] = user
+        discoveredUsers[packet.sender] = user
 
         // 如果是 BR_ENTRY，回应 ANSENTRY
         if packet.command == .BR_ENTRY {

@@ -3,9 +3,9 @@ import SwiftData
 
 @Model
 public final class Conversation {
-    @Attribute(.unique) public var id: String
+    @Attribute(.unique) public var id: UUID
     public var type: ConversationType
-    public var participantIDs: [String]
+    public var participantIDs: [UUID]
     public var lastMessageTimestamp: Date
     public var unreadCount: Int
 
@@ -16,9 +16,9 @@ public final class Conversation {
     public var messages: [Message]?
 
     public init(
-        id: String = UUID().uuidString,
+        id: UUID = UUID(),
         type: ConversationType,
-        participantIDs: [String],
+        participantIDs: [UUID],
         lastMessageTimestamp: Date = Date(),
         unreadCount: Int = 0
     ) {

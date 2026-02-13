@@ -13,7 +13,8 @@ import FluxQModels
 /// 这是一个轻量级模型，用于表示通过 UDP 广播发现的用户。
 /// 可以转换为持久化的 User 模型。
 public struct DiscoveredUser: Sendable, Identifiable, Equatable {
-    public let id: String
+    public let id: UUID
+    public let senderName: String
     public let nickname: String
     public let hostname: String
     public let ipAddress: String
@@ -22,7 +23,8 @@ public struct DiscoveredUser: Sendable, Identifiable, Equatable {
     public let discoveredAt: Date
 
     public init(
-        id: String,
+        id: UUID = UUID(),
+        senderName: String,
         nickname: String,
         hostname: String,
         ipAddress: String,
@@ -31,6 +33,7 @@ public struct DiscoveredUser: Sendable, Identifiable, Equatable {
         discoveredAt: Date = Date()
     ) {
         self.id = id
+        self.senderName = senderName
         self.nickname = nickname
         self.hostname = hostname
         self.ipAddress = ipAddress

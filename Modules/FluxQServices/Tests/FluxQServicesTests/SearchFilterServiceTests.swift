@@ -9,7 +9,7 @@ struct SearchFilterServiceTests {
     // MARK: - Helpers
 
     private func createUser(
-        id: String = UUID().uuidString,
+        id: UUID = UUID(),
         nickname: String = "TestUser",
         hostname: String = "test-host",
         ipAddress: String = "192.168.1.1",

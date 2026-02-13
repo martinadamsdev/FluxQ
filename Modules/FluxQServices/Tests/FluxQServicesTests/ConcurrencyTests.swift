@@ -19,18 +19,19 @@ struct ConcurrencyTests {
     func concurrentRecordHeartbeat() async {
         let service = HeartbeatService()
         let userCount = 100
+        let userIds = (0..<userCount).map { _ in UUID() }
 
         await withTaskGroup(of: Void.self) { group in
-            for i in 0..<userCount {
+            for id in userIds {
                 group.addTask { @MainActor in
-                    service.recordHeartbeat(userId: "user-\(i)")
+                    service.recordHeartbeat(userId: id)
                 }
             }
         }
 
         #expect(service.onlineUsers.count == userCount)
-        for i in 0..<userCount {
-            #expect(service.isUserOnline("user-\(i)"))
+        for id in userIds {
+            #expect(service.isUserOnline(id))
         }
     }
 
@@ -38,17 +39,18 @@ struct ConcurrencyTests {
     func concurrentRecordHeartbeatSameUser() async {
         let service = HeartbeatService()
         let iterations = 50
+        let sharedUserId = UUID()
 
         await withTaskGroup(of: Void.self) { group in
             for _ in 0..<iterations {
                 group.addTask { @MainActor in
-                    service.recordHeartbeat(userId: "shared-user")
+                    service.recordHeartbeat(userId: sharedUserId)
                 }
             }
         }
 
         #expect(service.onlineUsers.count == 1)
-        #expect(service.isUserOnline("shared-user"))
+        #expect(service.isUserOnline(sharedUserId))
     }
 
     // MARK: - HeartbeatService 并发 checkTimeouts
@@ -59,9 +61,22 @@ struct ConcurrencyTests {
         let now = Date()
 
         // 先添加一些用户，部分已超时
+        var activeIds: [UUID] = []
+        var timedOutIds: [UUID] = []
         for i in 0..<20 {
+            let id = UUID()
             let time = i < 10 ? now : now.addingTimeInterval(-(service.timeoutInterval + 10))
-            service.recordHeartbeat(userId: "user-\(i)", at: time)
+            service.recordHeartbeat(userId: id, at: time)
+            if i < 10 {
+                activeIds.append(id)
+            } else {
+                timedOutIds.append(id)
+            }
+        }
+
+        var newIds: [UUID] = []
+        for _ in 20..<40 {
+            newIds.append(UUID())
         }
 
         await withTaskGroup(of: Void.self) { group in
@@ -73,21 +88,21 @@ struct ConcurrencyTests {
             }
 
             // 同时并发添加新用户
-            for i in 20..<40 {
+            for id in newIds {
                 group.addTask { @MainActor in
-                    service.recordHeartbeat(userId: "user-\(i)", at: now)
+                    service.recordHeartbeat(userId: id, at: now)
                 }
             }
         }
 
         // 前 10 个用户应仍在线（未超时）
-        for i in 0..<10 {
-            #expect(service.onlineUsers["user-\(i)"] != nil)
+        for id in activeIds {
+            #expect(service.onlineUsers[id] != nil)
         }
 
         // 新添加的用户应在线
-        for i in 20..<40 {
-            #expect(service.onlineUsers["user-\(i)"] != nil)
+        for id in newIds {
+            #expect(service.onlineUsers[id] != nil)
         }
     }
 
@@ -95,16 +110,17 @@ struct ConcurrencyTests {
     func concurrentIsUserOnlineQueries() async {
         let service = HeartbeatService()
         let now = Date()
+        let userIds = (0..<50).map { _ in UUID() }
 
-        for i in 0..<50 {
-            service.recordHeartbeat(userId: "user-\(i)", at: now)
+        for id in userIds {
+            service.recordHeartbeat(userId: id, at: now)
         }
 
         await withTaskGroup(of: Void.self) { group in
             // 并发查询
-            for i in 0..<50 {
+            for id in userIds {
                 group.addTask { @MainActor in
-                    _ = service.isUserOnline("user-\(i)", at: now)
+                    _ = service.isUserOnline(id, at: now)
                 }
             }
 
@@ -125,7 +141,6 @@ struct ConcurrencyTests {
         let service = SearchFilterService()
         let users = (0..<20).map { i in
             User(
-                id: "user-\(i)",
                 nickname: "User\(i)",
                 hostname: "host-\(i)",
                 ipAddress: "192.168.1.\(i)"
@@ -159,7 +174,6 @@ struct ConcurrencyTests {
         let now = Date()
         let users = (0..<10).map { i in
             User(
-                id: "user-\(i)",
                 nickname: "User\(i)",
                 hostname: "host-\(i)",
                 ipAddress: "192.168.1.\(i)",
@@ -270,7 +284,7 @@ struct ConcurrencyTests {
         let transport = MockNetworkTransport()
         let manager = NetworkManager(port: 2425, transport: transport)
         let user = DiscoveredUser(
-            id: "bob", nickname: "Bob", hostname: "bob-mac",
+            senderName: "bob", nickname: "Bob", hostname: "bob-mac",
             ipAddress: "192.168.1.20"
         )
 
@@ -295,7 +309,7 @@ struct ConcurrencyTests {
 
         let users = (0..<10).map { i in
             DiscoveredUser(
-                id: "user-\(i)", nickname: "User\(i)", hostname: "host-\(i)",
+                senderName: "user-\(i)", nickname: "User\(i)", hostname: "host-\(i)",
                 ipAddress: "192.168.1.\(10 + i)"
             )
         }
@@ -335,11 +349,11 @@ struct ConcurrencyTests {
     @Test("HeartbeatService 在 MainActor 上下文中正常工作")
     func heartbeatServiceMainActorIsolation() async {
         let service = HeartbeatService()
+        let testId = UUID()
 
-        // 从 Task 中访问 @MainActor 隔离的属性和方法
         await Task { @MainActor in
-            service.recordHeartbeat(userId: "test")
-            #expect(service.isUserOnline("test"))
+            service.recordHeartbeat(userId: testId)
+            #expect(service.isUserOnline(testId))
             #expect(service.onlineUsers.count == 1)
         }.value
     }
@@ -392,11 +406,13 @@ struct ConcurrencyTests {
         let heartbeat = HeartbeatService()
         let avatar = AvatarService()
         let search = SearchFilterService()
+        let userId1 = UUID()
+        let userId2 = UUID()
 
         await withTaskGroup(of: Void.self) { group in
             group.addTask { @MainActor in
-                heartbeat.recordHeartbeat(userId: "user-1")
-                heartbeat.recordHeartbeat(userId: "user-2")
+                heartbeat.recordHeartbeat(userId: userId1)
+                heartbeat.recordHeartbeat(userId: userId2)
             }
 
             group.addTask { @MainActor in

@@ -3,7 +3,7 @@ import SwiftData
 
 @Model
 public final class User {
-    @Attribute(.unique) public var id: String
+    @Attribute(.unique) public var id: UUID
     public var nickname: String
     public var hostname: String
     public var ipAddress: String
@@ -19,7 +19,7 @@ public final class User {
     public var conversations: [Conversation]?
 
     public init(
-        id: String,
+        id: UUID = UUID(),
         nickname: String,
         hostname: String,
         ipAddress: String,

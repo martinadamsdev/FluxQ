@@ -164,7 +164,7 @@ struct NetworkManagerFullTests {
     func sendMessageSuccess() async throws {
         let (manager, transport) = makeManager()
         let user = DiscoveredUser(
-            id: "bob", nickname: "Bob", hostname: "bob-mac",
+            senderName: "bob", nickname: "Bob", hostname: "bob-mac",
             ipAddress: "192.168.1.20", port: 2425
         )
 
@@ -185,7 +185,7 @@ struct NetworkManagerFullTests {
         let (manager, transport) = makeManager()
         transport.shouldFailOnSend = true
         let user = DiscoveredUser(
-            id: "bob", nickname: "Bob", hostname: "bob-mac",
+            senderName: "bob", nickname: "Bob", hostname: "bob-mac",
             ipAddress: "192.168.1.20"
         )
 
@@ -198,7 +198,7 @@ struct NetworkManagerFullTests {
     func sendMessageUsesUserPort() async throws {
         let (manager, transport) = makeManager()
         let user = DiscoveredUser(
-            id: "bob", nickname: "Bob", hostname: "bob-mac",
+            senderName: "bob", nickname: "Bob", hostname: "bob-mac",
             ipAddress: "192.168.1.20", port: 3000
         )
 
@@ -294,12 +294,15 @@ struct NetworkManagerFullTests {
         try manager.start()
 
         transport.simulateReceive(data: makeBREntryData(sender: "alice", hostname: "old-mac"), from: "192.168.1.10")
+        let firstId = manager.discoveredUsers["alice"]?.id
         #expect(manager.discoveredUsers["alice"]?.hostname == "old-mac")
 
         transport.simulateReceive(data: makeBREntryData(sender: "alice", hostname: "new-mac"), from: "192.168.1.11")
         #expect(manager.discoveredUsers.count == 1)
         #expect(manager.discoveredUsers["alice"]?.hostname == "new-mac")
         #expect(manager.discoveredUsers["alice"]?.ipAddress == "192.168.1.11")
+        // UUID should be preserved on re-entry
+        #expect(manager.discoveredUsers["alice"]?.id == firstId)
     }
 
     // MARK: - Receive: Message Tests
@@ -386,7 +389,7 @@ struct NetworkManagerFullTests {
     func concurrentSendMessages() async throws {
         let (manager, transport) = makeManager()
         let user = DiscoveredUser(
-            id: "bob", nickname: "Bob", hostname: "bob-mac",
+            senderName: "bob", nickname: "Bob", hostname: "bob-mac",
             ipAddress: "192.168.1.20"
         )
 

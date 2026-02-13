@@ -25,7 +25,6 @@ struct PerformanceTests {
             let group: String? = i % 3 == 0 ? "Engineering" : (i % 3 == 1 ? "Design" : nil)
             let hash: String? = fraction < withAvatarRatio ? "hash-\(i)" : nil
             let user = User(
-                id: "user-\(i)",
                 nickname: "User \(i)",
                 hostname: "host-\(i).local",
                 ipAddress: "192.168.1.\(i % 255)",
@@ -178,7 +177,7 @@ struct PerformanceTests {
             let time = i % 2 == 0
                 ? now
                 : now.addingTimeInterval(-service.timeoutInterval - 10)
-            service.recordHeartbeat(userId: "user-\(i)", at: time)
+            service.recordHeartbeat(userId: UUID(), at: time)
         }
 
         let duration = measureDuration {

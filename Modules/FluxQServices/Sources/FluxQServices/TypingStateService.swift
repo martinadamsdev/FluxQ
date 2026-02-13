@@ -14,10 +14,10 @@ public final class TypingStateService: ObservableObject {
     // MARK: - State
 
     /// Maps remote user ID to the last time they were seen typing
-    @Published public private(set) var typingUsers: [String: Date] = [:]
+    @Published public private(set) var typingUsers: [UUID: Date] = [:]
 
     /// Tracks last time we sent TYPING to each user (for debouncing)
-    private var lastSentTyping: [String: Date] = [:]
+    private var lastSentTyping: [UUID: Date] = [:]
 
     private let networkManager: NetworkManager
     private var cleanupTask: Task<Void, Never>?
@@ -36,7 +36,7 @@ public final class TypingStateService: ObservableObject {
     // MARK: - Outgoing Commands
 
     /// Send a TYPING indicator to a specific user via UDP broadcast
-    public func startTyping(to userId: String) throws {
+    public func startTyping(to userId: UUID) throws {
         let now = Date()
 
         // Debounce: skip if we sent TYPING to this user within the debounce interval
@@ -45,32 +45,32 @@ public final class TypingStateService: ObservableObject {
             return
         }
 
-        try networkManager.sendBroadcast(command: .TYPING, payload: userId)
+        try networkManager.sendBroadcast(command: .TYPING, payload: userId.uuidString)
         lastSentTyping[userId] = now
     }
 
     /// Send a STOPTYPING indicator to a specific user via UDP broadcast
-    public func stopTyping(to userId: String) throws {
+    public func stopTyping(to userId: UUID) throws {
         lastSentTyping.removeValue(forKey: userId)
-        try networkManager.sendBroadcast(command: .STOPTYPING, payload: userId)
+        try networkManager.sendBroadcast(command: .STOPTYPING, payload: userId.uuidString)
     }
 
     // MARK: - Incoming Commands
 
     /// Handle an incoming TYPING command from a remote user
-    public func handleTypingCommand(from senderId: String) {
+    public func handleTypingCommand(from senderId: UUID) {
         typingUsers[senderId] = Date()
     }
 
     /// Handle an incoming STOPTYPING command from a remote user
-    public func handleStopTypingCommand(from senderId: String) {
+    public func handleStopTypingCommand(from senderId: UUID) {
         typingUsers.removeValue(forKey: senderId)
     }
 
     // MARK: - Query
 
     /// Check if a remote user is currently typing
-    public func isUserTyping(_ userId: String) -> Bool {
+    public func isUserTyping(_ userId: UUID) -> Bool {
         guard let lastTyping = typingUsers[userId] else {
             return false
         }

@@ -3,9 +3,9 @@ import SwiftData
 
 @Model
 public final class Message {
-    @Attribute(.unique) public var id: String
-    public var conversationID: String
-    public var senderID: String
+    @Attribute(.unique) public var id: UUID
+    public var conversationID: UUID
+    public var senderID: UUID
     public var content: String
     public var timestamp: Date
     public var status: MessageStatus
@@ -14,9 +14,9 @@ public final class Message {
     public var recalledAt: Date?
 
     public init(
-        id: String = UUID().uuidString,
-        conversationID: String,
-        senderID: String,
+        id: UUID = UUID(),
+        conversationID: UUID,
+        senderID: UUID,
         content: String,
         timestamp: Date = Date(),
         status: MessageStatus = .sending,

@@ -51,10 +51,11 @@ struct IntegrationTests {
         #expect(discovered?.nickname == "alice")
         #expect(discovered?.hostname == "alice-macbook")
         #expect(discovered?.ipAddress == "192.168.1.100")
+        #expect(discovered?.senderName == "alice")
 
         // 验证 toUser() 转换字段正确映射
         let user = discovered!.toUser()
-        #expect(user.id == "alice")
+        #expect(user.id == discovered?.id)
         #expect(user.nickname == "alice")
         #expect(user.hostname == "alice-macbook")
         #expect(user.ipAddress == "192.168.1.100")
@@ -80,15 +81,15 @@ struct IntegrationTests {
         let users = manager.discoveredUsers.values.map { $0.toUser() }
         #expect(users.count == 2)
 
-        let ids = Set(users.map { $0.id })
-        #expect(ids.contains("alice"))
-        #expect(ids.contains("bob"))
+        let nicknames = Set(users.map { $0.nickname })
+        #expect(nicknames.contains("alice"))
+        #expect(nicknames.contains("bob"))
     }
 
     @Test("带 group 的 DiscoveredUser 转换 User 后 group 字段保留")
     func discoveredUserWithGroupConvertsCorrectly() {
         let discovered = DiscoveredUser(
-            id: "charlie", nickname: "Charlie", hostname: "charlie-mac",
+            senderName: "charlie", nickname: "Charlie", hostname: "charlie-mac",
             ipAddress: "192.168.1.30", port: 3000, group: "Engineering"
         )
 
@@ -127,21 +128,22 @@ struct IntegrationTests {
         let searchFilter = SearchFilterService()
         searchFilter.filters = [.onlineOnly]
 
+        let aliceId = UUID()
         let onlineUser = User(
-            id: "alice", nickname: "Alice", hostname: "alice-mac",
+            id: aliceId, nickname: "Alice", hostname: "alice-mac",
             ipAddress: "192.168.1.10", isOnline: true
         )
         let offlineUser = User(
-            id: "bob", nickname: "Bob", hostname: "bob-mac",
+            nickname: "Bob", hostname: "bob-mac",
             ipAddress: "192.168.1.20", isOnline: false
         )
 
-        heartbeat.recordHeartbeat(userId: "alice")
-        #expect(heartbeat.isUserOnline("alice"))
+        heartbeat.recordHeartbeat(userId: aliceId)
+        #expect(heartbeat.isUserOnline(aliceId))
 
         let filtered = searchFilter.filterUsers([onlineUser, offlineUser])
         #expect(filtered.count == 1)
-        #expect(filtered[0].id == "alice")
+        #expect(filtered[0].id == aliceId)
     }
 
     @Test("HeartbeatService 超时后用户不再匹配在线过滤")
@@ -150,14 +152,15 @@ struct IntegrationTests {
         let searchFilter = SearchFilterService()
         searchFilter.filters = [.onlineOnly]
 
+        let aliceId = UUID()
         // 记录一个很久以前的心跳
         let longAgo = Date().addingTimeInterval(-heartbeat.timeoutInterval - 1)
-        heartbeat.recordHeartbeat(userId: "alice", at: longAgo)
-        #expect(!heartbeat.isUserOnline("alice"))
+        heartbeat.recordHeartbeat(userId: aliceId, at: longAgo)
+        #expect(!heartbeat.isUserOnline(aliceId))
 
         // 对应的 User 模型 isOnline 设为 false
         let user = User(
-            id: "alice", nickname: "Alice", hostname: "alice-mac",
+            id: aliceId, nickname: "Alice", hostname: "alice-mac",
             ipAddress: "192.168.1.10", isOnline: false
         )
 
@@ -171,31 +174,32 @@ struct IntegrationTests {
         let searchFilter = SearchFilterService()
         searchFilter.filters = [.onlineOnly]
 
+        let aliceId = UUID()
         let now = Date()
-        heartbeat.recordHeartbeat(userId: "alice", at: now)
+        heartbeat.recordHeartbeat(userId: aliceId, at: now)
 
         // 阶段 1: 在线 -> 过滤结果包含该用户
-        #expect(heartbeat.isUserOnline("alice", at: now))
+        #expect(heartbeat.isUserOnline(aliceId, at: now))
         let onlineUser = User(
-            id: "alice", nickname: "Alice", hostname: "alice-mac",
+            id: aliceId, nickname: "Alice", hostname: "alice-mac",
             ipAddress: "192.168.1.10", isOnline: true
         )
         #expect(searchFilter.filterUsers([onlineUser]).count == 1)
 
         // 阶段 2: 超时 -> 过滤结果不含该用户
         let afterTimeout = now.addingTimeInterval(heartbeat.timeoutInterval + 1)
-        #expect(!heartbeat.isUserOnline("alice", at: afterTimeout))
+        #expect(!heartbeat.isUserOnline(aliceId, at: afterTimeout))
         let offlineUser = User(
-            id: "alice", nickname: "Alice", hostname: "alice-mac",
+            id: aliceId, nickname: "Alice", hostname: "alice-mac",
             ipAddress: "192.168.1.10", isOnline: false
         )
         #expect(searchFilter.filterUsers([offlineUser]).isEmpty)
 
         // 阶段 3: 重新心跳 -> 再次出现
-        heartbeat.recordHeartbeat(userId: "alice", at: afterTimeout)
-        #expect(heartbeat.isUserOnline("alice", at: afterTimeout))
+        heartbeat.recordHeartbeat(userId: aliceId, at: afterTimeout)
+        #expect(heartbeat.isUserOnline(aliceId, at: afterTimeout))
         let backOnlineUser = User(
-            id: "alice", nickname: "Alice", hostname: "alice-mac",
+            id: aliceId, nickname: "Alice", hostname: "alice-mac",
             ipAddress: "192.168.1.10", isOnline: true
         )
         #expect(searchFilter.filterUsers([backOnlineUser]).count == 1)
@@ -204,23 +208,24 @@ struct IntegrationTests {
     @Test("渐进式超时移除 - 三次 checkTimeouts 后用户从 onlineUsers 移除")
     func progressiveTimeoutRemoval() {
         let heartbeat = HeartbeatService()
+        let aliceId = UUID()
         let now = Date()
 
-        heartbeat.recordHeartbeat(userId: "alice", at: now)
+        heartbeat.recordHeartbeat(userId: aliceId, at: now)
 
         let timeoutBase = now.addingTimeInterval(heartbeat.timeoutInterval + 1)
 
         // 第 1 次超时检查 - 仍在列表中
         heartbeat.checkTimeouts(currentTime: timeoutBase)
-        #expect(heartbeat.onlineUsers["alice"] != nil)
+        #expect(heartbeat.onlineUsers[aliceId] != nil)
 
         // 第 2 次超时检查
         heartbeat.checkTimeouts(currentTime: timeoutBase.addingTimeInterval(heartbeat.timeoutInterval + 1))
-        #expect(heartbeat.onlineUsers["alice"] != nil)
+        #expect(heartbeat.onlineUsers[aliceId] != nil)
 
         // 第 3 次超时检查 - 移除
         heartbeat.checkTimeouts(currentTime: timeoutBase.addingTimeInterval((heartbeat.timeoutInterval + 1) * 2))
-        #expect(heartbeat.onlineUsers["alice"] == nil)
+        #expect(heartbeat.onlineUsers[aliceId] == nil)
     }
 
     // MARK: - 3. 头像服务 -> 搜索过滤集成
@@ -235,17 +240,17 @@ struct IntegrationTests {
         let hash = avatarService.myAvatarHash
 
         let userWithAvatar = User(
-            id: "me", nickname: "Me", hostname: "my-mac",
+            nickname: "Me", hostname: "my-mac",
             ipAddress: "127.0.0.1", avatarHash: hash
         )
         let userWithout = User(
-            id: "other", nickname: "Other", hostname: "other-mac",
+            nickname: "Other", hostname: "other-mac",
             ipAddress: "192.168.1.20"
         )
 
         let filtered = searchFilter.filterUsers([userWithAvatar, userWithout])
         #expect(filtered.count == 1)
-        #expect(filtered[0].id == "me")
+        #expect(filtered[0].avatarHash == hash)
     }
 
     @Test("AvatarService 缓存的头像可以按 hash 检索")
@@ -271,7 +276,7 @@ struct IntegrationTests {
         let hash = avatarService.myAvatarHash
 
         let userWithAvatar = User(
-            id: "me", nickname: "Me", hostname: "my-mac",
+            nickname: "Me", hostname: "my-mac",
             ipAddress: "127.0.0.1", avatarHash: hash
         )
         #expect(searchFilter.filterUsers([userWithAvatar]).count == 1)
@@ -279,7 +284,7 @@ struct IntegrationTests {
         // 清除头像后，用新的 User (无 avatarHash) 检查过滤
         avatarService.clearMyAvatar()
         let userNoAvatar = User(
-            id: "me", nickname: "Me", hostname: "my-mac",
+            nickname: "Me", hostname: "my-mac",
             ipAddress: "127.0.0.1", avatarHash: nil
         )
         #expect(searchFilter.filterUsers([userNoAvatar]).isEmpty)
@@ -429,7 +434,7 @@ struct IntegrationTests {
         let discovered = manager.discoveredUsers["alice"]!
         heartbeat.recordHeartbeat(userId: discovered.id)
 
-        #expect(heartbeat.isUserOnline("alice"))
+        #expect(heartbeat.isUserOnline(discovered.id))
     }
 
     @Test("NetworkManager 发现 -> 转换 User -> SearchFilter 搜索全链路")
@@ -456,7 +461,7 @@ struct IntegrationTests {
         searchFilter.searchText = "alice"
         let filtered = searchFilter.filterUsers(users)
         #expect(filtered.count == 1)
-        #expect(filtered[0].id == "alice")
+        #expect(filtered[0].nickname == "alice")
     }
 
     // MARK: - 6. 完整消息流 (发送 + 确认)
@@ -522,16 +527,16 @@ struct IntegrationTests {
         searchFilter.filters = [.onlineOnly, .withAvatar]
 
         let users = [
-            User(id: "u1", nickname: "Alice", hostname: "h1",
+            User(nickname: "Alice", hostname: "h1",
                  ipAddress: "192.168.1.1", isOnline: true, avatarHash: "abc"),
-            User(id: "u2", nickname: "Bob", hostname: "h2",
+            User(nickname: "Bob", hostname: "h2",
                  ipAddress: "192.168.1.2", isOnline: true, avatarHash: nil),
-            User(id: "u3", nickname: "Charlie", hostname: "h3",
+            User(nickname: "Charlie", hostname: "h3",
                  ipAddress: "192.168.1.3", isOnline: false, avatarHash: "def"),
         ]
 
         let filtered = searchFilter.filterUsers(users)
         #expect(filtered.count == 1)
-        #expect(filtered[0].id == "u1")
+        #expect(filtered[0].nickname == "Alice")
     }
 }
