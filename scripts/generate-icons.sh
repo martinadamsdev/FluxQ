@@ -36,6 +36,12 @@ done
 # iOS 尺寸
 echo "Generating iOS icons..."
 for size in 20 29 40 60 76 83.5 1024; do
+    # 1024 是 iOS marketing icon，需要 1x (1024x1024)
+    if [[ "$size" == "1024" ]]; then
+        magick /tmp/icon-base.png -resize 1024x1024 "$OUT_DIR/icon-ios-1024.png"
+        continue
+    fi
+
     # @2x
     size2x=$(echo "$size * 2" | bc | cut -d. -f1)
     magick /tmp/icon-base.png -resize ${size2x}x${size2x} "$OUT_DIR/icon-ios-${size}@2x.png"
