@@ -11,12 +11,12 @@ def generate_base_icon(output_path, size=1024):
     img = Image.new('RGB', (size, size), FLUXQ_GREEN)
     draw = ImageDraw.Draw(img)
 
-    # Try to use Arial Bold, fallback to system default
+    # Use SF Pro (Apple's official font for Apple platforms)
     font_size = int(size * 0.6)  # 60% of image size
     font_paths = [
-        "/System/Library/Fonts/Supplemental/Arial Bold.ttf",
-        "/System/Library/Fonts/Supplemental/Helvetica.ttc",
-        "/Library/Fonts/Arial Bold.ttf",
+        "/System/Library/Fonts/SFNS.ttf",           # SF Pro (primary choice)
+        "/System/Library/Fonts/SFCompact.ttf",      # SF Compact (fallback)
+        "/System/Library/Fonts/Supplemental/Helvetica.ttc",  # Helvetica (fallback)
     ]
 
     font = None
