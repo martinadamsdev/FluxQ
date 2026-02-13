@@ -5,13 +5,13 @@
 //  Created by martinadamsdev on 2026/2/13.
 //
 
-import XCTest
+import Foundation
+import Testing
 @testable import FluxQServices
 
-final class DiscoveredUserTests: XCTestCase {
+struct DiscoveredUserTests {
 
-    func testInitWithDefaults() {
-        // When
+    @Test func initWithDefaults() {
         let user = DiscoveredUser(
             id: "alice",
             nickname: "Alice",
@@ -19,20 +19,17 @@ final class DiscoveredUserTests: XCTestCase {
             ipAddress: "192.168.1.10"
         )
 
-        // Then
-        XCTAssertEqual(user.id, "alice")
-        XCTAssertEqual(user.nickname, "Alice")
-        XCTAssertEqual(user.hostname, "MacBook-Pro")
-        XCTAssertEqual(user.ipAddress, "192.168.1.10")
-        XCTAssertEqual(user.port, 2425)
-        XCTAssertNil(user.group)
+        #expect(user.id == "alice")
+        #expect(user.nickname == "Alice")
+        #expect(user.hostname == "MacBook-Pro")
+        #expect(user.ipAddress == "192.168.1.10")
+        #expect(user.port == 2425)
+        #expect(user.group == nil)
     }
 
-    func testInitWithCustomValues() {
-        // Given
+    @Test func initWithCustomValues() {
         let date = Date(timeIntervalSince1970: 1000)
 
-        // When
         let user = DiscoveredUser(
             id: "bob",
             nickname: "Bob",
@@ -43,18 +40,16 @@ final class DiscoveredUserTests: XCTestCase {
             discoveredAt: date
         )
 
-        // Then
-        XCTAssertEqual(user.id, "bob")
-        XCTAssertEqual(user.nickname, "Bob")
-        XCTAssertEqual(user.hostname, "iMac")
-        XCTAssertEqual(user.ipAddress, "10.0.0.5")
-        XCTAssertEqual(user.port, 3000)
-        XCTAssertEqual(user.group, "Engineering")
-        XCTAssertEqual(user.discoveredAt, date)
+        #expect(user.id == "bob")
+        #expect(user.nickname == "Bob")
+        #expect(user.hostname == "iMac")
+        #expect(user.ipAddress == "10.0.0.5")
+        #expect(user.port == 3000)
+        #expect(user.group == "Engineering")
+        #expect(user.discoveredAt == date)
     }
 
-    func testEquatable() {
-        // Given
+    @Test func equatable() {
         let date = Date(timeIntervalSince1970: 500)
         let user1 = DiscoveredUser(
             id: "user1",
@@ -71,12 +66,10 @@ final class DiscoveredUserTests: XCTestCase {
             discoveredAt: date
         )
 
-        // Then
-        XCTAssertEqual(user1, user2)
+        #expect(user1 == user2)
     }
 
-    func testNotEqual() {
-        // Given
+    @Test func notEqual() {
         let date = Date(timeIntervalSince1970: 500)
         let user1 = DiscoveredUser(
             id: "user1",
@@ -93,12 +86,10 @@ final class DiscoveredUserTests: XCTestCase {
             discoveredAt: date
         )
 
-        // Then
-        XCTAssertNotEqual(user1, user2)
+        #expect(user1 != user2)
     }
 
-    func testIdentifiable() {
-        // Given
+    @Test func identifiable() {
         let user = DiscoveredUser(
             id: "unique-id",
             nickname: "Test",
@@ -106,12 +97,10 @@ final class DiscoveredUserTests: XCTestCase {
             ipAddress: "1.2.3.4"
         )
 
-        // Then - id should match the init parameter
-        XCTAssertEqual(user.id, "unique-id")
+        #expect(user.id == "unique-id")
     }
 
-    func testToUser() {
-        // Given
+    @Test func toUser() {
         let date = Date(timeIntervalSince1970: 2000)
         let discoveredUser = DiscoveredUser(
             id: "alice",
@@ -123,17 +112,15 @@ final class DiscoveredUserTests: XCTestCase {
             discoveredAt: date
         )
 
-        // When
         let user = discoveredUser.toUser()
 
-        // Then
-        XCTAssertEqual(user.id, "alice")
-        XCTAssertEqual(user.nickname, "Alice")
-        XCTAssertEqual(user.hostname, "MacBook")
-        XCTAssertEqual(user.ipAddress, "192.168.1.10")
-        XCTAssertEqual(user.port, 2425)
-        XCTAssertEqual(user.group, "Dev")
-        XCTAssertTrue(user.isOnline)
-        XCTAssertEqual(user.lastSeen, date)
+        #expect(user.id == "alice")
+        #expect(user.nickname == "Alice")
+        #expect(user.hostname == "MacBook")
+        #expect(user.ipAddress == "192.168.1.10")
+        #expect(user.port == 2425)
+        #expect(user.group == "Dev")
+        #expect(user.isOnline == true)
+        #expect(user.lastSeen == date)
     }
 }
