@@ -7,6 +7,7 @@ import Observation
 @Observable
 public class NetworkModeManager {
     public private(set) var currentMode: NetworkMode = .offline
+    public var coordinator: WatchServiceCoordinator?
 
     public enum NetworkMode: Equatable {
         case companion
@@ -78,6 +79,6 @@ public class NetworkModeManager {
     }
 
     private func switchToMode(_ mode: NetworkMode) async throws {
-        // 模式切换逻辑在 Task 7 中实现
+        try await coordinator?.switchToMode(mode)
     }
 }
