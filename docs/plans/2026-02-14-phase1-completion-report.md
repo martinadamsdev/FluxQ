@@ -284,13 +284,32 @@ f7656a2 feat: integrate MacMainView into AdaptiveRootView
 
 ---
 
-## 编译验证
+## 综合测试验证
 
-**macOS 目标**：✅ BUILD SUCCEEDED
-**iOS 目标**：✅ BUILD SUCCEEDED
+### 构建验证
 
-验证人：ui-dev-1
-验证时间：任务完成后
+| 目标平台 | 结果 | 代码警告 |
+|----------|------|----------|
+| macOS | BUILD SUCCEEDED | 无 |
+| iOS (iPhone 17 Pro) | BUILD SUCCEEDED | 无 |
+| iOS (iPad Pro 13-inch M5) | BUILD SUCCEEDED | 无 |
+
+### 模块测试
+
+| 模块 | 测试数 | 结果 |
+|------|--------|------|
+| IPMsgProtocol | 11 | 全部通过 |
+| FluxQModels | 2 | 全部通过 |
+| FluxQServices | 11 | 全部通过 |
+
+### 测试中发现并修复的问题
+
+1. **Preview 宏 deprecated 警告** (`c304cdd`)
+   - `iOSAdaptiveView.swift` 和 `iPadSplitView.swift` 中使用了已弃用的 `.previewDevice()` 和 `.previewInterfaceOrientation()` 修饰符
+   - 修复：改用 `#Preview` 宏的 `traits` 参数（如 `traits: .landscapeLeft`）
+
+验证人：tester
+验证时间：2026-02-14
 
 ---
 
