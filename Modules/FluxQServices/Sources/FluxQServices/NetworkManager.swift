@@ -9,6 +9,12 @@ import Foundation
 import Network
 import IPMsgProtocol
 
+#if os(iOS)
+import UIKit
+#elseif os(watchOS)
+import WatchKit
+#endif
+
 /// 网络管理器
 ///
 /// 负责 UDP 广播用户发现和消息收发
