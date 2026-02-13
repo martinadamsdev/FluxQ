@@ -5,10 +5,25 @@ struct SidebarView: View {
     @Binding var selection: AppNavigationItem
 
     var body: some View {
-        List(AppNavigationItem.allCases, selection: $selection) { item in
-            Label(item.rawValue, systemImage: item.systemImage)
-                .tag(item)
+        List {
+            ForEach(AppNavigationItem.allCases) { item in
+                Button {
+                    selection = item
+                } label: {
+                    Label(item.rawValue, systemImage: item.systemImage)
+                }
+                .listItemTint(selection == item ? .accentColor : nil)
+                #if os(macOS)
+                .buttonStyle(.plain)
+                #endif
+                .listRowBackground(
+                    selection == item
+                        ? Color.accentColor.opacity(0.15)
+                        : Color.clear
+                )
+            }
         }
+        .listStyle(.sidebar)
         .navigationTitle("FluxQ")
         #if os(macOS)
         .frame(minWidth: 180)
