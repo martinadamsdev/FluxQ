@@ -6,7 +6,7 @@ struct AdaptiveRootView: View {
         #if os(macOS)
             MacMainView()
         #elseif os(iOS)
-            MainTabView()  // 暂时使用现有的
+            iOSAdaptiveView()
         #elseif os(watchOS)
             Text("watchOS 主视图 - 占位")
         #endif
