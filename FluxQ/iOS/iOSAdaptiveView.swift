@@ -47,19 +47,14 @@ struct iOSAdaptiveView: View {
     }
 }
 
-#Preview("iPad 横屏") {
+#Preview("iPad 横屏", traits: .landscapeLeft) {
     iOSAdaptiveView()
-        .previewDevice("iPad Pro (12.9-inch) (6th generation)")
-        .previewInterfaceOrientation(.landscapeLeft)
 }
 
-#Preview("iPad 竖屏") {
+#Preview("iPad 竖屏", traits: .portrait) {
     iOSAdaptiveView()
-        .previewDevice("iPad Pro (12.9-inch) (6th generation)")
-        .previewInterfaceOrientation(.portrait)
 }
 
 #Preview("iPhone") {
     iOSAdaptiveView()
-        .previewDevice("iPhone 15 Pro")
 }

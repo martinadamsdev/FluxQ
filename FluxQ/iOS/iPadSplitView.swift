@@ -47,12 +47,10 @@ struct iPadSplitView: View {
     }
 }
 
-#Preview {
+#Preview("iPad 横屏", traits: .landscapeLeft) {
     iPadSplitView(
         selectedTab: .constant(.messages),
         selectedConversation: .constant(nil),
         selectedContact: .constant(nil)
     )
-    .previewDevice("iPad Pro (12.9-inch) (6th generation)")
-    .previewInterfaceOrientation(.landscapeLeft)
 }
