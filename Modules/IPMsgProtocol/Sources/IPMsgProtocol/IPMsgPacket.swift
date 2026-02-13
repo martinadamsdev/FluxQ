@@ -41,7 +41,7 @@ public struct IPMsgPacket: Sendable {
 
     /// 从字符串解码
     public static func decode(_ message: String) throws -> IPMsgPacket {
-        let parts = message.split(separator: ":", maxSplits: 5).map(String.init)
+        let parts = message.split(separator: ":", maxSplits: 5, omittingEmptySubsequences: false).map(String.init)
 
         guard parts.count == 6 else {
             throw IPMsgError.invalidFormat("Expected 6 parts, got \(parts.count)")
