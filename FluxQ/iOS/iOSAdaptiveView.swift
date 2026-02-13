@@ -30,12 +30,20 @@ struct iOSAdaptiveView: View {
                     selectedConversation: $selectedConversation,
                     selectedContact: $selectedContact
                 )
+                .transition(.asymmetric(
+                    insertion: .move(edge: .trailing).combined(with: .opacity),
+                    removal: .move(edge: .leading).combined(with: .opacity)
+                ))
             } else {
                 // iPad 竖屏或 iPhone - 标签栏
                 MainTabView()
+                    .transition(.asymmetric(
+                        insertion: .move(edge: .leading).combined(with: .opacity),
+                        removal: .move(edge: .trailing).combined(with: .opacity)
+                    ))
             }
         }
-        .animation(.easeInOut(duration: 0.3), value: shouldUseMultiColumn)
+        .animation(.easeInOut(duration: 0.35), value: shouldUseMultiColumn)
     }
 }
 
