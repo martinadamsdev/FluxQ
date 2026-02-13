@@ -2,14 +2,14 @@ import SwiftUI
 
 /// iPad 横屏多栏视图
 struct iPadSplitView: View {
-    @Binding var selectedTab: MacNavigationItem
+    @Binding var selectedTab: AppNavigationItem
     @Binding var selectedConversation: UUID?
     @Binding var selectedContact: UUID?
 
     var body: some View {
         NavigationSplitView {
-            // 第一栏：侧边栏（复用 macOS 的）
-            MacSidebarView(selection: $selectedTab)
+            // 第一栏：侧边栏
+            SidebarView(selection: $selectedTab)
         } content: {
             // 第二栏：内容列表
             contentColumn

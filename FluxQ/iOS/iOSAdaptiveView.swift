@@ -5,7 +5,7 @@ struct iOSAdaptiveView: View {
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
 
     // 状态保持：切换布局时保留选中项
-    @State private var selectedTab: MacNavigationItem = .messages
+    @State private var selectedTab: AppNavigationItem = .messages
     @State private var selectedConversation: UUID?
     @State private var selectedContact: UUID?
 
