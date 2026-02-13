@@ -24,6 +24,14 @@ public enum IPMsgCommand: Int, Codable, Sendable {
     case RELEASEFILES = 0x61    // 释放文件
     case GETDIRFILES = 0x62     // 获取目录文件
 
+    // 扩展命令（FluxQ 自定义）
+    case RECALLMSG = 0x00010000     // 撤回消息
+    case AVATAR = 0x00020000        // 头像元数据 UDP 广播
+    case GETAVATAR = 0x00030000     // 请求头像 TCP
+    case TYPING = 0x00040000        // 输入状态
+    case STOPTYPING = 0x00050000    // 停止输入
+    case RECALLLIST = 0x00060000    // 撤回列表
+
     /// 命令名称（用于调试）
     public var name: String {
         switch self {
@@ -36,6 +44,12 @@ public enum IPMsgCommand: Int, Codable, Sendable {
         case .GETFILEDATA: return "GETFILEDATA"
         case .RELEASEFILES: return "RELEASEFILES"
         case .GETDIRFILES: return "GETDIRFILES"
+        case .RECALLMSG: return "RECALLMSG"
+        case .AVATAR: return "AVATAR"
+        case .GETAVATAR: return "GETAVATAR"
+        case .TYPING: return "TYPING"
+        case .STOPTYPING: return "STOPTYPING"
+        case .RECALLLIST: return "RECALLLIST"
         }
     }
 }
