@@ -16,5 +16,8 @@ let package = Package(
     targets: [
         .target(
             name: "FluxQUI"),
+        .testTarget(
+            name: "FluxQUITests",
+            dependencies: ["FluxQUI"]),
     ]
 )
