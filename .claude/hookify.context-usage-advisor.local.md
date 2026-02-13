@@ -2,10 +2,7 @@
 name: context-usage-advisor
 enabled: true
 event: prompt
-conditions:
-  - field: user_prompt
-    operator: regex_match
-    pattern: (上下文|context).*(使用率|usage|多少|情况|状态|how much)|查看.*上下文|check.*context|context.*status
+pattern: (上下文|context).*(使用率|usage|多少|情况|状态|how much)|查看.*上下文|check.*context|context.*status
 action: warn
 ---
 
