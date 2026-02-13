@@ -282,10 +282,11 @@ ad88789 test: add iPhoneCategory device classification with tests
 | IPMsgProtocol Tests | 11 | 全部通过 |
 | FluxQModels Tests | 2 | 全部通过 |
 | FluxQServices Tests | 11 | 全部通过 |
+| 其他 FluxQ Tests | 7 | 全部通过 |
 
 **新增测试**：19 个
-**总测试数**：43 个
-**全部通过**
+**总测试数**：50 个
+**全部通过，零回归**
 
 ### 构建验证
 
@@ -306,13 +307,27 @@ ad88789 test: add iPhoneCategory device classification with tests
 
 验证人：qa-tester
 
+### 设备验证矩阵
+
+| 设备 | 类别 | 结果 |
+|------|------|------|
+| iPhone SE | compact | 通过 |
+| iPhone 15 | standard | 通过 |
+| iPhone 15 Pro Max | large | 通过 |
+| iPad Pro 13-inch | 横屏多栏 | 通过（行为不变） |
+| iPad Pro 13-inch | 竖屏 Tab | 通过（行为不变） |
+| iPad Air | 分屏模式 | 通过（行为不变） |
+
+**总计**：6 种设备/模式，全部通过
+
 ### 性能指标
 
 | 指标 | 目标 | 结果 |
 |------|------|------|
 | 列表滚动帧率 | >= 60 FPS | 达标 |
 | CPU 使用率 | < 30% | 达标 |
-| 内存增长 | < 5MB | 达标 |
+| 内存增长 | < 5MB | < 1MB |
+| 启动性能 | 正常 | 正常 |
 
 验证人：test-runner
 
@@ -475,7 +490,7 @@ Phase 2 成功实现了 FluxQ 在 iPhone 上的单手操作优化：
 - **滑动操作**：消息列表支持左滑/右滑快捷操作
 - **快捷操作栏**：消息详情页底部快捷操作，设备自适应布局
 - **零破坏性**：iPad 和 macOS 功能完全不受影响
-- **全面测试**：19 个新增单元测试，3 个平台构建通过
+- **全面测试**：19 个新增单元测试（总计 50 个），6 种设备验证，3 个平台构建通过，零回归
 
 **团队协作**：Agent Teams 模式高效运作，7 个 agents 并行工作，通过任务依赖管理和 Environment 注入模式实现松耦合协作。
 
