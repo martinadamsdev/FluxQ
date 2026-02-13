@@ -1,0 +1,33 @@
+{
+  "": {
+    "swift-dependencies": "/Users/martinadamsdev/workspace/FluxQ/Modules/FluxQModels/.build/arm64-apple-macosx/debug/FluxQModels.build/master.swiftdeps"
+  },
+  "/Users/martinadamsdev/workspace/FluxQ/Modules/FluxQModels/Sources/FluxQModels/Conversation.swift": {
+    "dependencies": "/Users/martinadamsdev/workspace/FluxQ/Modules/FluxQModels/.build/arm64-apple-macosx/debug/FluxQModels.build/Conversation.d",
+    "object": "/Users/martinadamsdev/workspace/FluxQ/Modules/FluxQModels/.build/arm64-apple-macosx/debug/FluxQModels.build/Conversation.swift.o",
+    "swiftmodule": "/Users/martinadamsdev/workspace/FluxQ/Modules/FluxQModels/.build/arm64-apple-macosx/debug/FluxQModels.build/Conversation~partial.swiftmodule",
+    "swift-dependencies": "/Users/martinadamsdev/workspace/FluxQ/Modules/FluxQModels/.build/arm64-apple-macosx/debug/FluxQModels.build/Conversation.swiftdeps",
+    "diagnostics": "/Users/martinadamsdev/workspace/FluxQ/Modules/FluxQModels/.build/arm64-apple-macosx/debug/FluxQModels.build/Conversation.dia"
+  },
+  "/Users/martinadamsdev/workspace/FluxQ/Modules/FluxQModels/Sources/FluxQModels/Enums.swift": {
+    "dependencies": "/Users/martinadamsdev/workspace/FluxQ/Modules/FluxQModels/.build/arm64-apple-macosx/debug/FluxQModels.build/Enums.d",
+    "object": "/Users/martinadamsdev/workspace/FluxQ/Modules/FluxQModels/.build/arm64-apple-macosx/debug/FluxQModels.build/Enums.swift.o",
+    "swiftmodule": "/Users/martinadamsdev/workspace/FluxQ/Modules/FluxQModels/.build/arm64-apple-macosx/debug/FluxQModels.build/Enums~partial.swiftmodule",
+    "swift-dependencies": "/Users/martinadamsdev/workspace/FluxQ/Modules/FluxQModels/.build/arm64-apple-macosx/debug/FluxQModels.build/Enums.swiftdeps",
+    "diagnostics": "/Users/martinadamsdev/workspace/FluxQ/Modules/FluxQModels/.build/arm64-apple-macosx/debug/FluxQModels.build/Enums.dia"
+  },
+  "/Users/martinadamsdev/workspace/FluxQ/Modules/FluxQModels/Sources/FluxQModels/Message.swift": {
+    "dependencies": "/Users/martinadamsdev/workspace/FluxQ/Modules/FluxQModels/.build/arm64-apple-macosx/debug/FluxQModels.build/Message.d",
+    "object": "/Users/martinadamsdev/workspace/FluxQ/Modules/FluxQModels/.build/arm64-apple-macosx/debug/FluxQModels.build/Message.swift.o",
+    "swiftmodule": "/Users/martinadamsdev/workspace/FluxQ/Modules/FluxQModels/.build/arm64-apple-macosx/debug/FluxQModels.build/Message~partial.swiftmodule",
+    "swift-dependencies": "/Users/martinadamsdev/workspace/FluxQ/Modules/FluxQModels/.build/arm64-apple-macosx/debug/FluxQModels.build/Message.swiftdeps",
+    "diagnostics": "/Users/martinadamsdev/workspace/FluxQ/Modules/FluxQModels/.build/arm64-apple-macosx/debug/FluxQModels.build/Message.dia"
+  },
+  "/Users/martinadamsdev/workspace/FluxQ/Modules/FluxQModels/Sources/FluxQModels/User.swift": {
+    "dependencies": "/Users/martinadamsdev/workspace/FluxQ/Modules/FluxQModels/.build/arm64-apple-macosx/debug/FluxQModels.build/User.d",
+    "object": "/Users/martinadamsdev/workspace/FluxQ/Modules/FluxQModels/.build/arm64-apple-macosx/debug/FluxQModels.build/User.swift.o",
+    "swiftmodule": "/Users/martinadamsdev/workspace/FluxQ/Modules/FluxQModels/.build/arm64-apple-macosx/debug/FluxQModels.build/User~partial.swiftmodule",
+    "swift-dependencies": "/Users/martinadamsdev/workspace/FluxQ/Modules/FluxQModels/.build/arm64-apple-macosx/debug/FluxQModels.build/User.swiftdeps",
+    "diagnostics": "/Users/martinadamsdev/workspace/FluxQ/Modules/FluxQModels/.build/arm64-apple-macosx/debug/FluxQModels.build/User.dia"
+  }
+}

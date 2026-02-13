@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		BB000001002F3F509400A847 /* FluxQModels in Frameworks */ = {isa = PBXBuildFile; productRef = BB000002002F3F509400A847 /* FluxQModels */; };
 		AA00000A002F3F509400A847 /* FluxQWatch.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = AA000002002F3F509400A847 /* FluxQWatch.app */; platformFilter = ios; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
@@ -96,6 +97,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				BB000001002F3F509400A847 /* FluxQModels in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -167,6 +169,7 @@
 			);
 			name = FluxQ;
 			packageProductDependencies = (
+				BB000002002F3F509400A847 /* FluxQModels */,
 			);
 			productName = FluxQ;
 			productReference = 615731D72F3F509300A847AB /* FluxQ.app */;
@@ -277,6 +280,9 @@
 			minimizedProjectReferenceProxies = 1;
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 615731D82F3F509300A847AB /* Products */;
+			packageReferences = (
+				BB000003002F3F509400A847 /* XCLocalSwiftPackageReference "Modules/FluxQModels" */,
+			);
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
@@ -781,6 +787,20 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		BB000003002F3F509400A847 /* XCLocalSwiftPackageReference "Modules/FluxQModels" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = Modules/FluxQModels;
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		BB000002002F3F509400A847 /* FluxQModels */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = FluxQModels;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 615731CF2F3F509300A847AB /* Project object */;
 }

@@ -1,0 +1,12 @@
+{
+  "": {
+    "swift-dependencies": "/Users/martinadamsdev/workspace/FluxQ/Modules/FluxQModels/.build/arm64-apple-macosx/debug/FluxQModelsPackageTests.build/master.swiftdeps"
+  },
+  "/Users/martinadamsdev/workspace/FluxQ/Modules/FluxQModels/.build/arm64-apple-macosx/debug/FluxQModelsPackageTests.derived/runner.swift": {
+    "dependencies": "/Users/martinadamsdev/workspace/FluxQ/Modules/FluxQModels/.build/arm64-apple-macosx/debug/FluxQModelsPackageTests.build/runner.d",
+    "object": "/Users/martinadamsdev/workspace/FluxQ/Modules/FluxQModels/.build/arm64-apple-macosx/debug/FluxQModelsPackageTests.build/runner.swift.o",
+    "swiftmodule": "/Users/martinadamsdev/workspace/FluxQ/Modules/FluxQModels/.build/arm64-apple-macosx/debug/FluxQModelsPackageTests.build/runner~partial.swiftmodule",
+    "swift-dependencies": "/Users/martinadamsdev/workspace/FluxQ/Modules/FluxQModels/.build/arm64-apple-macosx/debug/FluxQModelsPackageTests.build/runner.swiftdeps",
+    "diagnostics": "/Users/martinadamsdev/workspace/FluxQ/Modules/FluxQModels/.build/arm64-apple-macosx/debug/FluxQModelsPackageTests.build/runner.dia"
+  }
+}

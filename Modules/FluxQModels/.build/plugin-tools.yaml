@@ -1,0 +1,112 @@
+client:
+  name: basic
+  file-system: device-agnostic
+tools: {}
+targets:
+  "FluxQModels-arm64-apple-macosx26.0-debug.module": ["<FluxQModels-arm64-apple-macosx26.0-debug.module>"]
+  "FluxQModelsPackageTests-arm64-apple-macosx26.0-debug.module": ["<FluxQModelsPackageTests-arm64-apple-macosx26.0-debug.module>"]
+  "FluxQModelsPackageTests-arm64-apple-macosx26.0-debug.test": ["<FluxQModelsPackageTests-arm64-apple-macosx26.0-debug.test>"]
+  "FluxQModelsTests-arm64-apple-macosx26.0-debug.module": ["<FluxQModelsTests-arm64-apple-macosx26.0-debug.module>"]
+  "PackageStructure": ["<PackageStructure>"]
+  "main": ["<FluxQModels-arm64-apple-macosx26.0-debug.module>"]
+  "test": ["<FluxQModels-arm64-apple-macosx26.0-debug.module>","<FluxQModelsPackageTests-arm64-apple-macosx26.0-debug.test>","<FluxQModelsTests-arm64-apple-macosx26.0-debug.module>"]
+default: "main"
+nodes:
+  "/Users/martinadamsdev/workspace/FluxQ/Modules/FluxQModels/Sources/FluxQModels/":
+    is-directory-structure: true
+    content-exclusion-patterns: [".git",".build"]
+  "/Users/martinadamsdev/workspace/FluxQ/Modules/FluxQModels/Tests/FluxQModelsTests/":
+    is-directory-structure: true
+    content-exclusion-patterns: [".git",".build"]
+commands:
+  "/Users/martinadamsdev/workspace/FluxQ/Modules/FluxQModels/.build/arm64-apple-macosx/debug/FluxQModels.build/sources":
+    tool: write-auxiliary-file
+    inputs: ["<sources-file-list>","/Users/martinadamsdev/workspace/FluxQ/Modules/FluxQModels/Sources/FluxQModels/Conversation.swift","/Users/martinadamsdev/workspace/FluxQ/Modules/FluxQModels/Sources/FluxQModels/Enums.swift","/Users/martinadamsdev/workspace/FluxQ/Modules/FluxQModels/Sources/FluxQModels/Message.swift","/Users/martinadamsdev/workspace/FluxQ/Modules/FluxQModels/Sources/FluxQModels/User.swift"]
+    outputs: ["/Users/martinadamsdev/workspace/FluxQ/Modules/FluxQModels/.build/arm64-apple-macosx/debug/FluxQModels.build/sources"]
+    description: "Write auxiliary file /Users/martinadamsdev/workspace/FluxQ/Modules/FluxQModels/.build/arm64-apple-macosx/debug/FluxQModels.build/sources"
+
+  "/Users/martinadamsdev/workspace/FluxQ/Modules/FluxQModels/.build/arm64-apple-macosx/debug/FluxQModelsPackageTests.build/sources":
+    tool: write-auxiliary-file
+    inputs: ["<sources-file-list>","/Users/martinadamsdev/workspace/FluxQ/Modules/FluxQModels/.build/arm64-apple-macosx/debug/FluxQModelsPackageTests.derived/runner.swift"]
+    outputs: ["/Users/martinadamsdev/workspace/FluxQ/Modules/FluxQModels/.build/arm64-apple-macosx/debug/FluxQModelsPackageTests.build/sources"]
+    description: "Write auxiliary file /Users/martinadamsdev/workspace/FluxQ/Modules/FluxQModels/.build/arm64-apple-macosx/debug/FluxQModelsPackageTests.build/sources"
+
+  "/Users/martinadamsdev/workspace/FluxQ/Modules/FluxQModels/.build/arm64-apple-macosx/debug/FluxQModelsPackageTests.derived/runner.swift":
+    tool: test-entry-point-tool
+    inputs: []
+    outputs: ["/Users/martinadamsdev/workspace/FluxQ/Modules/FluxQModels/.build/arm64-apple-macosx/debug/FluxQModelsPackageTests.derived/runner.swift"]
+
+  "/Users/martinadamsdev/workspace/FluxQ/Modules/FluxQModels/.build/arm64-apple-macosx/debug/FluxQModelsPackageTests.product/Objects.LinkFileList":
+    tool: write-auxiliary-file
+    inputs: ["<link-file-list>","/Users/martinadamsdev/workspace/FluxQ/Modules/FluxQModels/.build/arm64-apple-macosx/debug/FluxQModels.build/Conversation.swift.o","/Users/martinadamsdev/workspace/FluxQ/Modules/FluxQModels/.build/arm64-apple-macosx/debug/FluxQModels.build/Enums.swift.o","/Users/martinadamsdev/workspace/FluxQ/Modules/FluxQModels/.build/arm64-apple-macosx/debug/FluxQModels.build/Message.swift.o","/Users/martinadamsdev/workspace/FluxQ/Modules/FluxQModels/.build/arm64-apple-macosx/debug/FluxQModels.build/User.swift.o","/Users/martinadamsdev/workspace/FluxQ/Modules/FluxQModels/.build/arm64-apple-macosx/debug/FluxQModelsPackageTests.build/runner.swift.o","/Users/martinadamsdev/workspace/FluxQ/Modules/FluxQModels/.build/arm64-apple-macosx/debug/FluxQModelsTests.build/UserTests.swift.o"]
+    outputs: ["/Users/martinadamsdev/workspace/FluxQ/Modules/FluxQModels/.build/arm64-apple-macosx/debug/FluxQModelsPackageTests.product/Objects.LinkFileList"]
+    description: "Write auxiliary file /Users/martinadamsdev/workspace/FluxQ/Modules/FluxQModels/.build/arm64-apple-macosx/debug/FluxQModelsPackageTests.product/Objects.LinkFileList"
+
+  "/Users/martinadamsdev/workspace/FluxQ/Modules/FluxQModels/.build/arm64-apple-macosx/debug/FluxQModelsTests.build/sources":
+    tool: write-auxiliary-file
+    inputs: ["<sources-file-list>","/Users/martinadamsdev/workspace/FluxQ/Modules/FluxQModels/Tests/FluxQModelsTests/UserTests.swift"]
+    outputs: ["/Users/martinadamsdev/workspace/FluxQ/Modules/FluxQModels/.build/arm64-apple-macosx/debug/FluxQModelsTests.build/sources"]
+    description: "Write auxiliary file /Users/martinadamsdev/workspace/FluxQ/Modules/FluxQModels/.build/arm64-apple-macosx/debug/FluxQModelsTests.build/sources"
+
+  "/Users/martinadamsdev/workspace/FluxQ/Modules/FluxQModels/.build/arm64-apple-macosx/debug/swift-version--58304C5D6DBC2206.txt":
+    tool: write-auxiliary-file
+    inputs: ["<swift-get-version>","/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc"]
+    outputs: ["/Users/martinadamsdev/workspace/FluxQ/Modules/FluxQModels/.build/arm64-apple-macosx/debug/swift-version--58304C5D6DBC2206.txt"]
+    always-out-of-date: "true"
+    description: "Write auxiliary file /Users/martinadamsdev/workspace/FluxQ/Modules/FluxQModels/.build/arm64-apple-macosx/debug/swift-version--58304C5D6DBC2206.txt"
+
+  "<FluxQModels-arm64-apple-macosx26.0-debug.module>":
+    tool: phony
+    inputs: ["/Users/martinadamsdev/workspace/FluxQ/Modules/FluxQModels/.build/arm64-apple-macosx/debug/FluxQModels.build/Conversation.swift.o","/Users/martinadamsdev/workspace/FluxQ/Modules/FluxQModels/.build/arm64-apple-macosx/debug/FluxQModels.build/Enums.swift.o","/Users/martinadamsdev/workspace/FluxQ/Modules/FluxQModels/.build/arm64-apple-macosx/debug/FluxQModels.build/Message.swift.o","/Users/martinadamsdev/workspace/FluxQ/Modules/FluxQModels/.build/arm64-apple-macosx/debug/FluxQModels.build/User.swift.o","/Users/martinadamsdev/workspace/FluxQ/Modules/FluxQModels/.build/arm64-apple-macosx/debug/Modules/FluxQModels.swiftmodule"]
+    outputs: ["<FluxQModels-arm64-apple-macosx26.0-debug.module>"]
+
+  "<FluxQModelsPackageTests-arm64-apple-macosx26.0-debug.module>":
+    tool: phony
+    inputs: ["/Users/martinadamsdev/workspace/FluxQ/Modules/FluxQModels/.build/arm64-apple-macosx/debug/FluxQModelsPackageTests.build/runner.swift.o","/Users/martinadamsdev/workspace/FluxQ/Modules/FluxQModels/.build/arm64-apple-macosx/debug/Modules/FluxQModelsPackageTests.swiftmodule"]
+    outputs: ["<FluxQModelsPackageTests-arm64-apple-macosx26.0-debug.module>"]
+
+  "<FluxQModelsPackageTests-arm64-apple-macosx26.0-debug.test>":
+    tool: phony
+    inputs: ["/Users/martinadamsdev/workspace/FluxQ/Modules/FluxQModels/.build/arm64-apple-macosx/debug/FluxQModelsPackageTests.xctest/Contents/MacOS/FluxQModelsPackageTests"]
+    outputs: ["<FluxQModelsPackageTests-arm64-apple-macosx26.0-debug.test>"]
+
+  "<FluxQModelsTests-arm64-apple-macosx26.0-debug.module>":
+    tool: phony
+    inputs: ["/Users/martinadamsdev/workspace/FluxQ/Modules/FluxQModels/.build/arm64-apple-macosx/debug/FluxQModelsTests.build/UserTests.swift.o","/Users/martinadamsdev/workspace/FluxQ/Modules/FluxQModels/.build/arm64-apple-macosx/debug/Modules/FluxQModelsTests.swiftmodule"]
+    outputs: ["<FluxQModelsTests-arm64-apple-macosx26.0-debug.module>"]
+
+  "C.FluxQModels-arm64-apple-macosx26.0-debug.module":
+    tool: shell
+    inputs: ["/Users/martinadamsdev/workspace/FluxQ/Modules/FluxQModels/Sources/FluxQModels/Conversation.swift","/Users/martinadamsdev/workspace/FluxQ/Modules/FluxQModels/Sources/FluxQModels/Enums.swift","/Users/martinadamsdev/workspace/FluxQ/Modules/FluxQModels/Sources/FluxQModels/Message.swift","/Users/martinadamsdev/workspace/FluxQ/Modules/FluxQModels/Sources/FluxQModels/User.swift","/Users/martinadamsdev/workspace/FluxQ/Modules/FluxQModels/.build/arm64-apple-macosx/debug/swift-version--58304C5D6DBC2206.txt","/Users/martinadamsdev/workspace/FluxQ/Modules/FluxQModels/.build/arm64-apple-macosx/debug/FluxQModels.build/sources"]
+    outputs: ["/Users/martinadamsdev/workspace/FluxQ/Modules/FluxQModels/.build/arm64-apple-macosx/debug/FluxQModels.build/Conversation.swift.o","/Users/martinadamsdev/workspace/FluxQ/Modules/FluxQModels/.build/arm64-apple-macosx/debug/FluxQModels.build/Enums.swift.o","/Users/martinadamsdev/workspace/FluxQ/Modules/FluxQModels/.build/arm64-apple-macosx/debug/FluxQModels.build/Message.swift.o","/Users/martinadamsdev/workspace/FluxQ/Modules/FluxQModels/.build/arm64-apple-macosx/debug/FluxQModels.build/User.swift.o","/Users/martinadamsdev/workspace/FluxQ/Modules/FluxQModels/.build/arm64-apple-macosx/debug/Modules/FluxQModels.swiftmodule"]
+    description: "Compiling Swift Module 'FluxQModels' (4 sources)"
+    args: ["/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc","-module-name","FluxQModels","-emit-dependencies","-emit-module","-emit-module-path","/Users/martinadamsdev/workspace/FluxQ/Modules/FluxQModels/.build/arm64-apple-macosx/debug/Modules/FluxQModels.swiftmodule","-output-file-map","/Users/martinadamsdev/workspace/FluxQ/Modules/FluxQModels/.build/arm64-apple-macosx/debug/FluxQModels.build/output-file-map.json","-parse-as-library","-incremental","-c","@/Users/martinadamsdev/workspace/FluxQ/Modules/FluxQModels/.build/arm64-apple-macosx/debug/FluxQModels.build/sources","-I","/Users/martinadamsdev/workspace/FluxQ/Modules/FluxQModels/.build/arm64-apple-macosx/debug/Modules","-target","arm64-apple-macosx14.0","-incremental","-enable-batch-mode","-serialize-diagnostics","-index-store-path","/Users/martinadamsdev/workspace/FluxQ/Modules/FluxQModels/.build/arm64-apple-macosx/debug/index/store","-Onone","-enable-testing","-j14","-DSWIFT_PACKAGE","-DDEBUG","-DSWIFT_MODULE_RESOURCE_BUNDLE_UNAVAILABLE","-module-cache-path","/Users/martinadamsdev/workspace/FluxQ/Modules/FluxQModels/.build/arm64-apple-macosx/debug/ModuleCache","-parseable-output","-parse-as-library","-emit-objc-header","-emit-objc-header-path","/Users/martinadamsdev/workspace/FluxQ/Modules/FluxQModels/.build/arm64-apple-macosx/debug/FluxQModels.build/include/FluxQModels-Swift.h","-swift-version","5","-plugin-path","/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing","-sdk","/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.2.sdk","-F","/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks","-F","/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/PrivateFrameworks","-I","/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib","-L","/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib","-g","-Xcc","-isysroot","-Xcc","/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.2.sdk","-Xcc","-F","-Xcc","/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks","-Xcc","-F","-Xcc","/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/PrivateFrameworks","-Xcc","-fPIC","-Xcc","-g","-package-name","fluxqmodels"]
+
+  "C.FluxQModelsPackageTests-arm64-apple-macosx26.0-debug.module":
+    tool: shell
+    inputs: ["/Users/martinadamsdev/workspace/FluxQ/Modules/FluxQModels/.build/arm64-apple-macosx/debug/FluxQModelsPackageTests.derived/runner.swift","/Users/martinadamsdev/workspace/FluxQ/Modules/FluxQModels/.build/arm64-apple-macosx/debug/swift-version--58304C5D6DBC2206.txt","/Users/martinadamsdev/workspace/FluxQ/Modules/FluxQModels/.build/arm64-apple-macosx/debug/Modules/FluxQModelsTests.swiftmodule","/Users/martinadamsdev/workspace/FluxQ/Modules/FluxQModels/.build/arm64-apple-macosx/debug/FluxQModelsPackageTests.build/sources"]
+    outputs: ["/Users/martinadamsdev/workspace/FluxQ/Modules/FluxQModels/.build/arm64-apple-macosx/debug/FluxQModelsPackageTests.build/runner.swift.o","/Users/martinadamsdev/workspace/FluxQ/Modules/FluxQModels/.build/arm64-apple-macosx/debug/Modules/FluxQModelsPackageTests.swiftmodule"]
+    description: "Compiling Swift Module 'FluxQModelsPackageTests' (1 sources)"
+    args: ["/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc","-module-name","FluxQModelsPackageTests","-emit-dependencies","-emit-module","-emit-module-path","/Users/martinadamsdev/workspace/FluxQ/Modules/FluxQModels/.build/arm64-apple-macosx/debug/Modules/FluxQModelsPackageTests.swiftmodule","-output-file-map","/Users/martinadamsdev/workspace/FluxQ/Modules/FluxQModels/.build/arm64-apple-macosx/debug/FluxQModelsPackageTests.build/output-file-map.json","-parse-as-library","-incremental","-c","@/Users/martinadamsdev/workspace/FluxQ/Modules/FluxQModels/.build/arm64-apple-macosx/debug/FluxQModelsPackageTests.build/sources","-I","/Users/martinadamsdev/workspace/FluxQ/Modules/FluxQModels/.build/arm64-apple-macosx/debug/Modules","-target","arm64-apple-macosx14.0","-incremental","-enable-batch-mode","-serialize-diagnostics","-index-store-path","/Users/martinadamsdev/workspace/FluxQ/Modules/FluxQModels/.build/arm64-apple-macosx/debug/index/store","-Onone","-enable-testing","-Xfrontend","-enable-cross-import-overlays","-j14","-DSWIFT_PACKAGE","-DDEBUG","-DSWIFT_MODULE_RESOURCE_BUNDLE_UNAVAILABLE","-module-cache-path","/Users/martinadamsdev/workspace/FluxQ/Modules/FluxQModels/.build/arm64-apple-macosx/debug/ModuleCache","-parseable-output","-parse-as-library","-emit-objc-header","-emit-objc-header-path","/Users/martinadamsdev/workspace/FluxQ/Modules/FluxQModels/.build/arm64-apple-macosx/debug/FluxQModelsPackageTests.build/include/FluxQModelsPackageTests-Swift.h","-plugin-path","/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing","-sdk","/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.2.sdk","-F","/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks","-F","/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/PrivateFrameworks","-I","/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib","-L","/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib","-g","-Xcc","-isysroot","-Xcc","/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.2.sdk","-Xcc","-F","-Xcc","/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks","-Xcc","-F","-Xcc","/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/PrivateFrameworks","-Xcc","-fPIC","-Xcc","-g","-package-name","fluxqmodels"]
+
+  "C.FluxQModelsPackageTests-arm64-apple-macosx26.0-debug.test":
+    tool: shell
+    inputs: ["/Users/martinadamsdev/workspace/FluxQ/Modules/FluxQModels/.build/arm64-apple-macosx/debug/FluxQModels.build/Conversation.swift.o","/Users/martinadamsdev/workspace/FluxQ/Modules/FluxQModels/.build/arm64-apple-macosx/debug/FluxQModels.build/Enums.swift.o","/Users/martinadamsdev/workspace/FluxQ/Modules/FluxQModels/.build/arm64-apple-macosx/debug/FluxQModels.build/Message.swift.o","/Users/martinadamsdev/workspace/FluxQ/Modules/FluxQModels/.build/arm64-apple-macosx/debug/FluxQModels.build/User.swift.o","/Users/martinadamsdev/workspace/FluxQ/Modules/FluxQModels/.build/arm64-apple-macosx/debug/FluxQModelsPackageTests.build/runner.swift.o","/Users/martinadamsdev/workspace/FluxQ/Modules/FluxQModels/.build/arm64-apple-macosx/debug/FluxQModelsTests.build/UserTests.swift.o","/Users/martinadamsdev/workspace/FluxQ/Modules/FluxQModels/.build/arm64-apple-macosx/debug/FluxQModelsPackageTests.product/Objects.LinkFileList"]
+    outputs: ["/Users/martinadamsdev/workspace/FluxQ/Modules/FluxQModels/.build/arm64-apple-macosx/debug/FluxQModelsPackageTests.xctest/Contents/MacOS/FluxQModelsPackageTests"]
+    description: "Linking ./.build/arm64-apple-macosx/debug/FluxQModelsPackageTests.xctest/Contents/MacOS/FluxQModelsPackageTests"
+    args: ["/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc","-L","/Users/martinadamsdev/workspace/FluxQ/Modules/FluxQModels/.build/arm64-apple-macosx/debug","-o","/Users/martinadamsdev/workspace/FluxQ/Modules/FluxQModels/.build/arm64-apple-macosx/debug/FluxQModelsPackageTests.xctest/Contents/MacOS/FluxQModelsPackageTests","-module-name","FluxQModelsPackageTests","-Xlinker","-no_warn_duplicate_libraries","-Xlinker","-bundle","-Xlinker","-rpath","-Xlinker","@loader_path/../../../","@/Users/martinadamsdev/workspace/FluxQ/Modules/FluxQModels/.build/arm64-apple-macosx/debug/FluxQModelsPackageTests.product/Objects.LinkFileList","-Xlinker","-rpath","-Xlinker","/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift-6.2/macosx","-target","arm64-apple-macosx14.0","-Xlinker","-add_ast_path","-Xlinker","/Users/martinadamsdev/workspace/FluxQ/Modules/FluxQModels/.build/arm64-apple-macosx/debug/Modules/FluxQModels.swiftmodule","-Xlinker","-add_ast_path","-Xlinker","/Users/martinadamsdev/workspace/FluxQ/Modules/FluxQModels/.build/arm64-apple-macosx/debug/Modules/FluxQModelsPackageTests.swiftmodule","-Xlinker","-add_ast_path","-Xlinker","/Users/martinadamsdev/workspace/FluxQ/Modules/FluxQModels/.build/arm64-apple-macosx/debug/Modules/FluxQModelsTests.swiftmodule","-plugin-path","/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing","-sdk","/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.2.sdk","-F","/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks","-F","/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/PrivateFrameworks","-I","/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib","-L","/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib","-g"]
+
+  "C.FluxQModelsTests-arm64-apple-macosx26.0-debug.module":
+    tool: shell
+    inputs: ["/Users/martinadamsdev/workspace/FluxQ/Modules/FluxQModels/Tests/FluxQModelsTests/UserTests.swift","/Users/martinadamsdev/workspace/FluxQ/Modules/FluxQModels/.build/arm64-apple-macosx/debug/swift-version--58304C5D6DBC2206.txt","/Users/martinadamsdev/workspace/FluxQ/Modules/FluxQModels/.build/arm64-apple-macosx/debug/Modules/FluxQModels.swiftmodule","/Users/martinadamsdev/workspace/FluxQ/Modules/FluxQModels/.build/arm64-apple-macosx/debug/FluxQModelsTests.build/sources"]
+    outputs: ["/Users/martinadamsdev/workspace/FluxQ/Modules/FluxQModels/.build/arm64-apple-macosx/debug/FluxQModelsTests.build/UserTests.swift.o","/Users/martinadamsdev/workspace/FluxQ/Modules/FluxQModels/.build/arm64-apple-macosx/debug/Modules/FluxQModelsTests.swiftmodule"]
+    description: "Compiling Swift Module 'FluxQModelsTests' (1 sources)"
+    args: ["/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc","-module-name","FluxQModelsTests","-emit-dependencies","-emit-module","-emit-module-path","/Users/martinadamsdev/workspace/FluxQ/Modules/FluxQModels/.build/arm64-apple-macosx/debug/Modules/FluxQModelsTests.swiftmodule","-output-file-map","/Users/martinadamsdev/workspace/FluxQ/Modules/FluxQModels/.build/arm64-apple-macosx/debug/FluxQModelsTests.build/output-file-map.json","-parse-as-library","-incremental","-c","@/Users/martinadamsdev/workspace/FluxQ/Modules/FluxQModels/.build/arm64-apple-macosx/debug/FluxQModelsTests.build/sources","-I","/Users/martinadamsdev/workspace/FluxQ/Modules/FluxQModels/.build/arm64-apple-macosx/debug/Modules","-target","arm64-apple-macosx14.0","-incremental","-enable-batch-mode","-serialize-diagnostics","-index-store-path","/Users/martinadamsdev/workspace/FluxQ/Modules/FluxQModels/.build/arm64-apple-macosx/debug/index/store","-Onone","-enable-testing","-Xfrontend","-enable-cross-import-overlays","-j14","-DSWIFT_PACKAGE","-DDEBUG","-DSWIFT_MODULE_RESOURCE_BUNDLE_UNAVAILABLE","-module-cache-path","/Users/martinadamsdev/workspace/FluxQ/Modules/FluxQModels/.build/arm64-apple-macosx/debug/ModuleCache","-parseable-output","-parse-as-library","-swift-version","5","-plugin-path","/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing","-sdk","/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.2.sdk","-F","/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks","-F","/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/PrivateFrameworks","-I","/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib","-L","/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib","-g","-Xcc","-isysroot","-Xcc","/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.2.sdk","-Xcc","-F","-Xcc","/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks","-Xcc","-F","-Xcc","/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/PrivateFrameworks","-Xcc","-fPIC","-Xcc","-g","-package-name","fluxqmodels"]
+
+  "PackageStructure":
+    tool: package-structure-tool
+    inputs: ["/Users/martinadamsdev/workspace/FluxQ/Modules/FluxQModels/Sources/FluxQModels/","/Users/martinadamsdev/workspace/FluxQ/Modules/FluxQModels/Tests/FluxQModelsTests/","/Users/martinadamsdev/workspace/FluxQ/Modules/FluxQModels/Package.swift","/Users/martinadamsdev/workspace/FluxQ/Modules/FluxQModels/Package.resolved"]
+    outputs: ["<PackageStructure>"]
+    description: "Planning build"
+    allow-missing-inputs: true
+
