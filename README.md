@@ -8,7 +8,7 @@
 
 [![Platform](https://img.shields.io/badge/platform-macOS%20%7C%20iOS%20%7C%20iPadOS%20%7C%20watchOS-blue)]()
 [![Swift](https://img.shields.io/badge/swift-5.9-orange)]()
-[![License](https://img.shields.io/badge/license-BSD-green)]()
+[![License](https://img.shields.io/badge/license-MIT-green)]()
 
 [功能](#功能) • [安装](#安装) • [使用](#使用) • [构建](#构建) • [路线图](#路线图)
 
