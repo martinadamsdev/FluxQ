@@ -1,0 +1,83 @@
+name: Build and Test
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-macos:
+    name: Build macOS
+    runs-on: macos-14
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Select Xcode version
+        run: sudo xcode-select -s /Applications/Xcode.app
+
+      - name: Show Xcode version
+        run: xcodebuild -version
+
+      - name: Build macOS app
+        run: |
+          xcodebuild -project FluxQ.xcodeproj \
+                     -scheme FluxQ \
+                     -destination 'platform=macOS' \
+                     clean build \
+                     | xcpretty
+
+  build-ios:
+    name: Build iOS
+    runs-on: macos-14
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Select Xcode version
+        run: sudo xcode-select -s /Applications/Xcode.app
+
+      - name: List available simulators
+        run: xcrun simctl list devices available
+
+      - name: Build iOS app
+        run: |
+          xcodebuild -project FluxQ.xcodeproj \
+                     -scheme FluxQ \
+                     -destination 'platform=iOS Simulator,name=iPhone 17 Pro' \
+                     clean build \
+                     | xcpretty
+
+  build-watchos:
+    name: Build watchOS
+    runs-on: macos-14
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Select Xcode version
+        run: sudo xcode-select -s /Applications/Xcode.app
+
+      - name: Build watchOS app
+        run: |
+          xcodebuild -project FluxQ.xcodeproj \
+                     -scheme FluxQWatch \
+                     -destination 'platform=watchOS Simulator,name=Apple Watch Series 11 (46mm)' \
+                     clean build \
+                     | xcpretty
+
+  test-models:
+    name: Test FluxQModels
+    runs-on: macos-14
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run FluxQModels tests
+        run: |
+          swift test --package-path Modules/FluxQModels
