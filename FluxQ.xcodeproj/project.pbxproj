@@ -10,6 +10,8 @@
 		AA00000A002F3F509400A847 /* FluxQWatch.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = AA000002002F3F509400A847 /* FluxQWatch.app */; platformFilter = ios; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		BB000001002F3F509400A847 /* FluxQModels in Frameworks */ = {isa = PBXBuildFile; productRef = BB000002002F3F509400A847 /* FluxQModels */; };
 		CC000001002F3F509400A847 /* FluxQUI in Frameworks */ = {isa = PBXBuildFile; productRef = CC000002002F3F509400A847 /* FluxQUI */; };
+		DD000001002F3F509400A847 /* IPMsgProtocol in Frameworks */ = {isa = PBXBuildFile; productRef = DD000002002F3F509400A847 /* IPMsgProtocol */; };
+		EE000001002F3F509400A847 /* FluxQServices in Frameworks */ = {isa = PBXBuildFile; productRef = EE000002002F3F509400A847 /* FluxQServices */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -100,6 +102,8 @@
 			files = (
 				BB000001002F3F509400A847 /* FluxQModels in Frameworks */,
 				CC000001002F3F509400A847 /* FluxQUI in Frameworks */,
+				DD000001002F3F509400A847 /* IPMsgProtocol in Frameworks */,
+				EE000001002F3F509400A847 /* FluxQServices in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -173,6 +177,8 @@
 			packageProductDependencies = (
 				BB000002002F3F509400A847 /* FluxQModels */,
 				CC000002002F3F509400A847 /* FluxQUI */,
+				DD000002002F3F509400A847 /* IPMsgProtocol */,
+				EE000002002F3F509400A847 /* FluxQServices */,
 			);
 			productName = FluxQ;
 			productReference = 615731D72F3F509300A847AB /* FluxQ.app */;
@@ -284,6 +290,8 @@
 			packageReferences = (
 				BB000003002F3F509400A847 /* XCLocalSwiftPackageReference "Modules/FluxQModels" */,
 				CC000003002F3F509400A847 /* XCLocalSwiftPackageReference "Modules/FluxQUI" */,
+				DD000003002F3F509400A847 /* XCLocalSwiftPackageReference "Modules/IPMsgProtocol" */,
+				EE000003002F3F509400A847 /* XCLocalSwiftPackageReference "Modules/FluxQServices" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 615731D82F3F509300A847AB /* Products */;
@@ -801,6 +809,14 @@
 			isa = XCLocalSwiftPackageReference;
 			relativePath = Modules/FluxQUI;
 		};
+		DD000003002F3F509400A847 /* XCLocalSwiftPackageReference "Modules/IPMsgProtocol" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = Modules/IPMsgProtocol;
+		};
+		EE000003002F3F509400A847 /* XCLocalSwiftPackageReference "Modules/FluxQServices" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = Modules/FluxQServices;
+		};
 /* End XCLocalSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -811,6 +827,14 @@
 		CC000002002F3F509400A847 /* FluxQUI */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = FluxQUI;
+		};
+		DD000002002F3F509400A847 /* IPMsgProtocol */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = IPMsgProtocol;
+		};
+		EE000002002F3F509400A847 /* FluxQServices */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = FluxQServices;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
