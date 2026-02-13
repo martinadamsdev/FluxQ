@@ -4,10 +4,17 @@ import SwiftUI
 struct iOSAdaptiveView: View {
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
 
-    // 状态保持：切换布局时保留选中项
-    @State private var selectedTab: AppNavigationItem = .messages
+    // 状态保持：使用 @SceneStorage 确保旋转和布局切换时保留选中项
+    @SceneStorage("selectedTab") private var selectedTabRawValue: String = AppNavigationItem.messages.rawValue
     @State private var selectedConversation: UUID?
     @State private var selectedContact: UUID?
+
+    private var selectedTab: Binding<AppNavigationItem> {
+        Binding(
+            get: { AppNavigationItem(rawValue: selectedTabRawValue) ?? .messages },
+            set: { selectedTabRawValue = $0.rawValue }
+        )
+    }
 
     /// 是否应该使用多栏布局
     private var shouldUseMultiColumn: Bool {
@@ -19,7 +26,7 @@ struct iOSAdaptiveView: View {
             if shouldUseMultiColumn {
                 // iPad 横屏 - 多栏布局
                 iPadSplitView(
-                    selectedTab: $selectedTab,
+                    selectedTab: selectedTab,
                     selectedConversation: $selectedConversation,
                     selectedContact: $selectedContact
                 )
