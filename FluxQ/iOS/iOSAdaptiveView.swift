@@ -35,8 +35,8 @@ struct iOSAdaptiveView: View {
                     removal: .move(edge: .leading).combined(with: .opacity)
                 ))
             } else {
-                // iPad 竖屏或 iPhone - 标签栏
-                MainTabView()
+                // iPhone/iPad 竖屏 - 使用单手优化包装视图
+                iPhoneOptimizedView()
                     .transition(.asymmetric(
                         insertion: .move(edge: .leading).combined(with: .opacity),
                         removal: .move(edge: .trailing).combined(with: .opacity)

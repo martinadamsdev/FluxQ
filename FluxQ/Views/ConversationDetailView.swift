@@ -4,9 +4,14 @@ import SwiftUI
 struct ConversationDetailView: View {
     let conversationId: UUID?
 
+    #if os(iOS)
+    @Environment(\.deviceCategory) private var deviceCategory
+    @Environment(\.shouldApplyOneHandedOptimization) private var shouldOptimize
+    #endif
+
     var body: some View {
         if let conversationId {
-            VStack {
+            VStack(spacing: 0) {
                 // 消息历史区域
                 ScrollView {
                     VStack(spacing: 12) {
@@ -22,6 +27,16 @@ struct ConversationDetailView: View {
                 }
 
                 Divider()
+
+                #if os(iOS)
+                // iPhone 快捷操作栏（仅竖屏优化时显示）
+                if shouldOptimize {
+                    QuickActionBar(
+                        actions: Self.quickActions,
+                        category: deviceCategory
+                    )
+                }
+                #endif
 
                 // 输入框区域
                 HStack {
@@ -51,6 +66,27 @@ struct ConversationDetailView: View {
         }
     }
 }
+
+// MARK: - Quick Actions
+
+#if os(iOS)
+extension ConversationDetailView {
+    static let quickActions: [QuickAction] = [
+        .init(icon: "photo", label: "相册") {
+            // TODO: 选择照片
+        },
+        .init(icon: "camera", label: "拍照") {
+            // TODO: 打开相机
+        },
+        .init(icon: "folder", label: "文件") {
+            // TODO: 选择文件
+        },
+        .init(icon: "location", label: "位置") {
+            // TODO: 分享位置
+        }
+    ]
+}
+#endif
 
 #Preview("已选中") {
     NavigationStack {
