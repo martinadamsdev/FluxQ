@@ -4,9 +4,9 @@ import SwiftUI
 struct AdaptiveRootView: View {
     var body: some View {
         #if os(macOS)
-            Text("macOS 主视图 - 占位")
+            MacMainView()
         #elseif os(iOS)
-            Text("iOS 主视图 - 占位")
+            MainTabView()  // 暂时使用现有的
         #elseif os(watchOS)
             Text("watchOS 主视图 - 占位")
         #endif
