@@ -1,0 +1,19 @@
+{
+  "": {
+    "swift-dependencies": "/Users/martinadamsdev/workspace/FluxQ/Modules/FluxQUI/.build/arm64-apple-macosx/debug/FluxQUI.build/master.swiftdeps"
+  },
+  "/Users/martinadamsdev/workspace/FluxQ/Modules/FluxQUI/Sources/FluxQUI/Theme/Colors.swift": {
+    "dependencies": "/Users/martinadamsdev/workspace/FluxQ/Modules/FluxQUI/.build/arm64-apple-macosx/debug/FluxQUI.build/Colors.d",
+    "object": "/Users/martinadamsdev/workspace/FluxQ/Modules/FluxQUI/.build/arm64-apple-macosx/debug/FluxQUI.build/Colors.swift.o",
+    "swiftmodule": "/Users/martinadamsdev/workspace/FluxQ/Modules/FluxQUI/.build/arm64-apple-macosx/debug/FluxQUI.build/Colors~partial.swiftmodule",
+    "swift-dependencies": "/Users/martinadamsdev/workspace/FluxQ/Modules/FluxQUI/.build/arm64-apple-macosx/debug/FluxQUI.build/Colors.swiftdeps",
+    "diagnostics": "/Users/martinadamsdev/workspace/FluxQ/Modules/FluxQUI/.build/arm64-apple-macosx/debug/FluxQUI.build/Colors.dia"
+  },
+  "/Users/martinadamsdev/workspace/FluxQ/Modules/FluxQUI/Sources/FluxQUI/Theme/ThemeManager.swift": {
+    "dependencies": "/Users/martinadamsdev/workspace/FluxQ/Modules/FluxQUI/.build/arm64-apple-macosx/debug/FluxQUI.build/ThemeManager.d",
+    "object": "/Users/martinadamsdev/workspace/FluxQ/Modules/FluxQUI/.build/arm64-apple-macosx/debug/FluxQUI.build/ThemeManager.swift.o",
+    "swiftmodule": "/Users/martinadamsdev/workspace/FluxQ/Modules/FluxQUI/.build/arm64-apple-macosx/debug/FluxQUI.build/ThemeManager~partial.swiftmodule",
+    "swift-dependencies": "/Users/martinadamsdev/workspace/FluxQ/Modules/FluxQUI/.build/arm64-apple-macosx/debug/FluxQUI.build/ThemeManager.swiftdeps",
+    "diagnostics": "/Users/martinadamsdev/workspace/FluxQ/Modules/FluxQUI/.build/arm64-apple-macosx/debug/FluxQUI.build/ThemeManager.dia"
+  }
+}

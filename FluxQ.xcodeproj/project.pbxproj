@@ -7,8 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		BB000001002F3F509400A847 /* FluxQModels in Frameworks */ = {isa = PBXBuildFile; productRef = BB000002002F3F509400A847 /* FluxQModels */; };
 		AA00000A002F3F509400A847 /* FluxQWatch.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = AA000002002F3F509400A847 /* FluxQWatch.app */; platformFilter = ios; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		BB000001002F3F509400A847 /* FluxQModels in Frameworks */ = {isa = PBXBuildFile; productRef = BB000002002F3F509400A847 /* FluxQModels */; };
+		CC000001002F3F509400A847 /* FluxQUI in Frameworks */ = {isa = PBXBuildFile; productRef = CC000002002F3F509400A847 /* FluxQUI */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -98,6 +99,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				BB000001002F3F509400A847 /* FluxQModels in Frameworks */,
+				CC000001002F3F509400A847 /* FluxQUI in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -170,6 +172,7 @@
 			name = FluxQ;
 			packageProductDependencies = (
 				BB000002002F3F509400A847 /* FluxQModels */,
+				CC000002002F3F509400A847 /* FluxQUI */,
 			);
 			productName = FluxQ;
 			productReference = 615731D72F3F509300A847AB /* FluxQ.app */;
@@ -278,11 +281,12 @@
 			);
 			mainGroup = 615731CE2F3F509300A847AB;
 			minimizedProjectReferenceProxies = 1;
-			preferredProjectObjectVersion = 77;
-			productRefGroup = 615731D82F3F509300A847AB /* Products */;
 			packageReferences = (
 				BB000003002F3F509400A847 /* XCLocalSwiftPackageReference "Modules/FluxQModels" */,
+				CC000003002F3F509400A847 /* XCLocalSwiftPackageReference "Modules/FluxQUI" */,
 			);
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 615731D82F3F509300A847AB /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
@@ -793,12 +797,20 @@
 			isa = XCLocalSwiftPackageReference;
 			relativePath = Modules/FluxQModels;
 		};
+		CC000003002F3F509400A847 /* XCLocalSwiftPackageReference "Modules/FluxQUI" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = Modules/FluxQUI;
+		};
 /* End XCLocalSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
 		BB000002002F3F509400A847 /* FluxQModels */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = FluxQModels;
+		};
+		CC000002002F3F509400A847 /* FluxQUI */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = FluxQUI;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

@@ -1,6 +1,9 @@
 import SwiftUI
+import FluxQUI
 
 struct SettingsView: View {
+    @State private var selectedTheme: String = "系统"
+
     var body: some View {
         NavigationStack {
             Form {
@@ -25,6 +28,24 @@ struct SettingsView: View {
                         Text("在线").tag("在线")
                         Text("离开").tag("离开")
                         Text("忙碌").tag("忙碌")
+                    }
+                }
+
+                Section("外观") {
+                    Picker("主题", selection: $selectedTheme) {
+                        Text("浅色").tag("浅色")
+                        Text("深色").tag("深色")
+                        Text("系统").tag("系统")
+                    }
+                    .onChange(of: selectedTheme) { _, newValue in
+                        switch newValue {
+                        case "浅色":
+                            ThemeManager.shared.setColorScheme(.light)
+                        case "深色":
+                            ThemeManager.shared.setColorScheme(.dark)
+                        default:
+                            ThemeManager.shared.setColorScheme(nil)
+                        }
                     }
                 }
             }

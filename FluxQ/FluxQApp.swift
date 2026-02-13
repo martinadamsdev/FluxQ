@@ -8,9 +8,12 @@
 import SwiftUI
 import SwiftData
 import FluxQModels
+import FluxQUI
 
 @main
 struct FluxQApp: App {
+    @State private var themeManager = ThemeManager.shared
+
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
             User.self,
@@ -35,6 +38,7 @@ struct FluxQApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .themedColorScheme(themeManager)
         }
         .modelContainer(sharedModelContainer)
     }
