@@ -1,0 +1,46 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+
+# Xcode
+*.xcodeproj/*
+!*.xcodeproj/project.pbxproj
+!*.xcodeproj/xcshareddata/
+*.xcworkspace/*
+!*.xcworkspace/contents.xcworkspacedata
+DerivedData/
+.build/
+*.build/
+*.pbxuser
+*.mode1v3
+*.mode2v3
+*.perspectivev3
+*.xcuserstate
+*.xcuserdatad
+
+# Swift Package Manager
+.swiftpm/
+Packages/
+Package.resolved
+*.xcodeproj
+
+# Build Artifacts
+*.app
+*.dSYM.zip
+*.dSYM
+
+# Screenshots (optional - uncomment to ignore)
+# docs/images/*.png
+
+# IDE
+.vscode/
+.idea/
+
+# Other
+*.swp
+*.swo
+*~
+.netrc
