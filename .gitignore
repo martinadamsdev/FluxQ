@@ -39,6 +39,9 @@ Package.resolved
 .vscode/
 .idea/
 
+# Git Worktrees
+.worktrees/
+
 # Other
 *.swp
 *.swo
