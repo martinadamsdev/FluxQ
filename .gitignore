@@ -25,9 +25,10 @@ DerivedData/
 .swiftpm/
 Packages/
 Package.resolved
-*.xcodeproj
+Modules/**/*.xcodeproj
 
 # Build Artifacts
+build/
 *.app
 *.dSYM.zip
 *.dSYM
