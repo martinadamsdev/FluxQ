@@ -94,6 +94,7 @@ public enum ConversationService {
             type: .private,
             participantIDs: [user.id]
         )
+        conversation.participants = [user]
         context.insert(conversation)
         return conversation.id
     }
