@@ -15,6 +15,7 @@ struct ConversationDetailView: View {
     @State private var scrollTarget: UUID?
 
     @EnvironmentObject private var networkManager: NetworkManager
+    @EnvironmentObject private var conversationTracker: ActiveConversationTracker
     @State private var typingUsername: String?
     @State private var forwardingMessage: Message?
     @State private var showingFilePicker = false
@@ -76,6 +77,15 @@ struct ConversationDetailView: View {
         .sheet(item: $forwardingMessage) { message in
             ForwardTargetPicker(messageContent: message.content) { targetConversation in
                 forwardMessage(message, to: targetConversation)
+            }
+        }
+        .onAppear {
+            conversationTracker.activeConversationId = conversationId
+            clearUnreadCount(for: conversationId)
+        }
+        .onDisappear {
+            if conversationTracker.activeConversationId == conversationId {
+                conversationTracker.activeConversationId = nil
             }
         }
     }
@@ -299,6 +309,17 @@ struct ConversationDetailView: View {
                     try? modelContext.save()
                 }
             }
+        }
+    }
+
+    private func clearUnreadCount(for conversationId: UUID) {
+        let descriptor = FetchDescriptor<Conversation>(
+            predicate: #Predicate { $0.id == conversationId }
+        )
+        if let conversation = try? modelContext.fetch(descriptor).first,
+           conversation.unreadCount > 0 {
+            conversation.unreadCount = 0
+            try? modelContext.save()
         }
     }
 

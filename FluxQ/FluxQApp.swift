@@ -7,6 +7,7 @@
 
 import SwiftUI
 import SwiftData
+import UserNotifications
 import FluxQModels
 import FluxQServices
 import FluxQUI
@@ -16,6 +17,8 @@ struct FluxQApp: App {
     @State private var themeManager = ThemeManager.shared
     @StateObject private var networkManager = NetworkManager()
     @StateObject private var heartbeatService = HeartbeatService()
+    @StateObject private var conversationTracker = ActiveConversationTracker()
+    private let notificationDelegate = NotificationDelegate()
 
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
@@ -64,6 +67,7 @@ struct FluxQApp: App {
                 .themedColorScheme(themeManager)
                 .environmentObject(networkManager)
                 .environmentObject(heartbeatService)
+                .environmentObject(conversationTracker)
                 .onAppear {
                     startNetworkServices()
                 }
@@ -71,10 +75,9 @@ struct FluxQApp: App {
                     guard newCount > lastProcessedMessageCount else { return }
                     let context = sharedModelContainer.mainContext
                     for i in lastProcessedMessageCount..<newCount {
-                        MessageReceiveHandler.handleReceivedMessage(
-                            networkManager.receivedMessages[i],
-                            in: context
-                        )
+                        let received = networkManager.receivedMessages[i]
+                        MessageReceiveHandler.handleReceivedMessage(received, in: context)
+                        handleNotification(for: received)
                     }
                     lastProcessedMessageCount = newCount
                 }
@@ -97,6 +100,19 @@ struct FluxQApp: App {
     }
 
     private func startNetworkServices() {
+        // 设置通知委托
+        UNUserNotificationCenter.current().delegate = notificationDelegate
+        notificationDelegate.onNotificationTapped = { conversationId in
+            NotificationCenter.default.post(
+                name: .navigateToConversation,
+                object: nil,
+                userInfo: ["conversationId": conversationId]
+            )
+        }
+
+        // 请求通知权限
+        NotificationService.shared.requestPermission()
+
         do {
             try networkManager.start()
             let nm = networkManager
@@ -107,4 +123,91 @@ struct FluxQApp: App {
             print("FluxQApp: 启动网络服务失败 - \(error)")
         }
     }
+
+    private func handleNotification(for received: ReceivedMessage) {
+        let isSoundEnabled = NotificationHandler.isSoundEnabled()
+        let soundName = NotificationHandler.soundName()
+
+        // 查找该消息对应的对话 ID
+        let hostname = received.hostname
+        let ipAddress = received.fromHost
+        let context = sharedModelContainer.mainContext
+        let userDescriptor = FetchDescriptor<User>(
+            predicate: #Predicate { $0.hostname == hostname && $0.ipAddress == ipAddress }
+        )
+        guard let sender = try? context.fetch(userDescriptor).first else { return }
+
+        // SwiftData #Predicate 不支持 .contains on Array，使用内存过滤
+        let allConversations = (try? context.fetch(FetchDescriptor<Conversation>())) ?? []
+        let conversationId = allConversations.first {
+            $0.type == .private && $0.participantIDs.contains(sender.id)
+        }?.id
+
+        // 纯逻辑决策
+        #if os(macOS)
+        let isAppActive = NSApplication.shared.isActive
+        #else
+        let isAppActive = true
+        #endif
+
+        let action = NotificationHandler.determineAction(
+            conversationId: conversationId,
+            activeConversationId: conversationTracker.activeConversationId,
+            isSoundEnabled: isSoundEnabled,
+            isAppActive: isAppActive
+        )
+
+        if action.shouldPlaySound {
+            SoundManager.shared.play(soundName: soundName)
+        }
+
+        if action.shouldSendNotification, let conversationId {
+            NotificationService.shared.sendNotification(
+                title: received.senderName,
+                body: received.content,
+                conversationId: conversationId,
+                soundName: soundName
+            )
+        }
+    }
+}
+
+// MARK: - Notification Delegate
+
+final class NotificationDelegate: NSObject, UNUserNotificationCenterDelegate {
+    var onNotificationTapped: ((UUID) -> Void)?
+
+    func userNotificationCenter(
+        _ center: UNUserNotificationCenter,
+        willPresent notification: UNNotification,
+        withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void
+    ) {
+        completionHandler([.banner, .sound])
+    }
+
+    func userNotificationCenter(
+        _ center: UNUserNotificationCenter,
+        didReceive response: UNNotificationResponse,
+        withCompletionHandler completionHandler: @escaping () -> Void
+    ) {
+        let userInfo = response.notification.request.content.userInfo
+        if let conversationId = Self.parseConversationId(from: userInfo) {
+            Task { @MainActor in
+                onNotificationTapped?(conversationId)
+            }
+        }
+        completionHandler()
+    }
+
+    /// 从通知 userInfo 中解析 conversationId UUID
+    static func parseConversationId(from userInfo: [AnyHashable: Any]) -> UUID? {
+        guard let idString = userInfo["conversationId"] as? String else { return nil }
+        return UUID(uuidString: idString)
+    }
+}
+
+// MARK: - Notification Name
+
+extension Notification.Name {
+    static let navigateToConversation = Notification.Name("navigateToConversation")
 }

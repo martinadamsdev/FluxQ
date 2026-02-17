@@ -1,4 +1,5 @@
 import SwiftUI
+import Foundation
 
 #if os(macOS)
 
@@ -49,6 +50,12 @@ struct MacMainView: View {
             selectedTab = .messages
             selectedConversation = conversationId
         })
+        .onReceive(NotificationCenter.default.publisher(for: .navigateToConversation)) { notification in
+            if let conversationId = notification.userInfo?["conversationId"] as? UUID {
+                selectedTab = .messages
+                selectedConversation = conversationId
+            }
+        }
     }
 
     @ViewBuilder

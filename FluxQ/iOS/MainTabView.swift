@@ -1,4 +1,5 @@
 import SwiftUI
+import Foundation
 
 struct MainTabView: View {
     @State private var selectedTab: AppNavigationItem = .messages
@@ -34,6 +35,12 @@ struct MainTabView: View {
             activeConversationId = conversationId
             selectedTab = .messages
         })
+        .onReceive(NotificationCenter.default.publisher(for: .navigateToConversation)) { notification in
+            if let conversationId = notification.userInfo?["conversationId"] as? UUID {
+                activeConversationId = conversationId
+                selectedTab = .messages
+            }
+        }
     }
 }
 

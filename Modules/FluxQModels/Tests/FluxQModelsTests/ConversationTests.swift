@@ -156,4 +156,25 @@ struct ConversationTests {
         let conv = Conversation(type: .private, participantIDs: [])
         #expect(conv.displayName == "未知")
     }
+
+    @Test("unreadCount 可以重置为 0")
+    func resetUnreadCount() throws {
+        let config = ModelConfiguration(isStoredInMemoryOnly: true)
+        let container = try ModelContainer(
+            for: Conversation.self, User.self, Message.self,
+            configurations: config
+        )
+        let context = ModelContext(container)
+
+        let conversation = Conversation(type: .private, participantIDs: [UUID()], unreadCount: 5)
+        context.insert(conversation)
+        try context.save()
+
+        #expect(conversation.unreadCount == 5)
+
+        conversation.unreadCount = 0
+        try context.save()
+
+        #expect(conversation.unreadCount == 0)
+    }
 }

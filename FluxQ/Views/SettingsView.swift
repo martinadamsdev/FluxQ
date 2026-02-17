@@ -4,6 +4,10 @@ import FluxQUI
 struct SettingsView: View {
     @State private var selectedTheme: String = "系统"
 
+    // 通知设置
+    @AppStorage("notification.soundEnabled") private var soundEnabled = true
+    @AppStorage("notification.soundName") private var soundName = "Glass"
+
     var body: some View {
         NavigationStack {
             Form {
@@ -28,6 +32,21 @@ struct SettingsView: View {
                         Text("在线").tag("在线")
                         Text("离开").tag("离开")
                         Text("忙碌").tag("忙碌")
+                    }
+                }
+
+                Section("通知") {
+                    Toggle("消息提示音", isOn: $soundEnabled)
+
+                    if soundEnabled {
+                        Picker("提示音", selection: $soundName) {
+                            ForEach(SoundManager.availableSystemSounds, id: \.self) { name in
+                                Text(name).tag(name)
+                            }
+                        }
+                        .onChange(of: soundName) { _, newValue in
+                            SoundManager.shared.play(soundName: newValue, force: true)
+                        }
                     }
                 }
 
