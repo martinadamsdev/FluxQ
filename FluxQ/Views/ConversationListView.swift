@@ -1,43 +1,59 @@
 import SwiftUI
 
 struct ConversationListView: View {
-    /// 可选的选中状态（macOS/iPad 多栏布局需要）
+    /// macOS/iPad: selection binding for multi-column layout
     @Binding var selection: UUID?
+
+    /// iPhone: programmatic navigation target
+    @Binding var activeConversationId: UUID?
 
     #if os(iOS)
     @Environment(\.deviceCategory) private var deviceCategory
     #endif
 
+    @State private var navigationPath = NavigationPath()
+
     /// 示例对话数据 - TODO: 替换为实际的对话数据源
     @State private var sampleConversations: [SampleConversation] = SampleConversation.examples
 
     var body: some View {
-        List(selection: $selection) {
-            if sampleConversations.isEmpty {
-                ContentUnavailableView {
-                    Label("暂无消息", systemImage: "message.fill")
-                } description: {
-                    Text("开始一个新的对话")
-                }
-            } else {
-                ForEach(sampleConversations) { conversation in
-                    #if os(iOS)
-                    conversationRowWithSwipe(conversation)
-                    #else
-                    conversationRow(conversation)
-                    #endif
+        NavigationStack(path: $navigationPath) {
+            List(selection: $selection) {
+                if sampleConversations.isEmpty {
+                    ContentUnavailableView {
+                        Label("暂无消息", systemImage: "message.fill")
+                    } description: {
+                        Text("开始一个新的对话")
+                    }
+                } else {
+                    ForEach(sampleConversations) { conversation in
+                        #if os(iOS)
+                        conversationRowWithSwipe(conversation)
+                        #else
+                        conversationRow(conversation)
+                        #endif
+                    }
                 }
             }
-        }
-        .listStyle(.plain)
-        .navigationTitle("消息")
-        .toolbar {
-            ToolbarItem(placement: .primaryAction) {
-                Button {
-                    // TODO: 新建群聊
-                } label: {
-                    Image(systemName: "plus")
+            .listStyle(.plain)
+            .navigationTitle("消息")
+            .toolbar {
+                ToolbarItem(placement: .primaryAction) {
+                    Button {
+                        // TODO: 新建群聊
+                    } label: {
+                        Image(systemName: "plus")
+                    }
                 }
+            }
+            .navigationDestination(for: UUID.self) { conversationId in
+                ConversationDetailView(conversationId: conversationId)
+            }
+        }
+        .onChange(of: activeConversationId) { _, newValue in
+            if let id = newValue {
+                navigationPath.append(id)
+                activeConversationId = nil
             }
         }
     }
@@ -194,8 +210,22 @@ private struct SampleConversation: Identifiable {
 // MARK: - 向后兼容
 
 extension ConversationListView {
+    /// macOS/iPad init with selection binding
+    init(selection: Binding<UUID?>) {
+        self._selection = selection
+        self._activeConversationId = .constant(nil)
+    }
+
+    /// iPhone init with activeConversationId binding
+    init(activeConversationId: Binding<UUID?>) {
+        self._selection = .constant(nil)
+        self._activeConversationId = activeConversationId
+    }
+
+    /// Default init (no external navigation)
     init() {
         self._selection = .constant(nil)
+        self._activeConversationId = .constant(nil)
     }
 }
 
