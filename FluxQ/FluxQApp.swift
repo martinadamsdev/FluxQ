@@ -78,6 +78,15 @@ struct FluxQApp: App {
                     }
                     lastProcessedMessageCount = newCount
                 }
+                .onChange(of: networkManager.receivedRecalls.count) { _, _ in
+                    if let lastRecall = networkManager.receivedRecalls.last {
+                        let context = sharedModelContainer.mainContext
+                        MessageReceiveHandler.handleRecallCommand(
+                            messageIDString: lastRecall,
+                            in: context
+                        )
+                    }
+                }
         }
         .modelContainer(sharedModelContainer)
         #if os(macOS)

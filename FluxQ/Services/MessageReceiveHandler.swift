@@ -52,4 +52,22 @@ enum MessageReceiveHandler {
 
         try? context.save()
     }
+
+    /// 处理收到的撤回命令
+    static func handleRecallCommand(
+        messageIDString: String,
+        in context: ModelContext
+    ) {
+        guard let messageID = UUID(uuidString: messageIDString) else { return }
+
+        let descriptor = FetchDescriptor<Message>(
+            predicate: #Predicate { $0.id == messageID }
+        )
+
+        if let message = try? context.fetch(descriptor).first {
+            message.isRecalled = true
+            message.recalledAt = Date()
+            try? context.save()
+        }
+    }
 }
