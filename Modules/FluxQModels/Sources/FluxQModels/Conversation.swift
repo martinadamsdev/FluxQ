@@ -28,4 +28,9 @@ public final class Conversation {
         self.lastMessageTimestamp = lastMessageTimestamp
         self.unreadCount = unreadCount
     }
+
+    /// 会话显示名称：取第一个参与者的昵称
+    public var displayName: String {
+        participants?.first?.nickname ?? "未知"
+    }
 }

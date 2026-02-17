@@ -1,5 +1,6 @@
 import Testing
 import Foundation
+import SwiftData
 @testable import FluxQModels
 
 @Suite("Conversation Tests")
@@ -128,5 +129,31 @@ struct ConversationTests {
 
         #expect(conversation.participants == nil)
         #expect(conversation.messages == nil)
+    }
+
+    @Test("displayName returns first participant nickname for private conversation")
+    func displayNamePrivateConversation() throws {
+        let config = ModelConfiguration(isStoredInMemoryOnly: true)
+        let container = try ModelContainer(
+            for: User.self, Conversation.self, Message.self,
+            configurations: config
+        )
+        let context = ModelContext(container)
+
+        let user = User(nickname: "Alice", hostname: "alice-mac", ipAddress: "192.168.1.10")
+        context.insert(user)
+
+        let conv = Conversation(type: .private, participantIDs: [user.id])
+        conv.participants = [user]
+        context.insert(conv)
+        try context.save()
+
+        #expect(conv.displayName == "Alice")
+    }
+
+    @Test("displayName returns '未知' when no participants")
+    func displayNameEmpty() throws {
+        let conv = Conversation(type: .private, participantIDs: [])
+        #expect(conv.displayName == "未知")
     }
 }
