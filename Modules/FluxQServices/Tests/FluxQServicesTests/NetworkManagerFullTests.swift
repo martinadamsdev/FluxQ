@@ -21,6 +21,11 @@ struct NetworkManagerFullTests {
         return (manager, transport)
     }
 
+    /// Strip the \0instanceId suffix appended by createPacket
+    private func cleanPayload(_ payload: String) -> String {
+        String(payload.split(separator: "\0", maxSplits: 1, omittingEmptySubsequences: false).first ?? "")
+    }
+
     private func makeBREntryData(sender: String = "alice", hostname: String = "alice-mac") -> Data {
         let packet = IPMsgPacket(
             version: 1, packetNo: 100, sender: sender,
@@ -146,7 +151,7 @@ struct NetworkManagerFullTests {
         let decoded = try IPMsgPacket.decode(
             String(data: transport.broadcastMessages[0].data, encoding: .utf8)!)
         #expect(decoded.command == .BR_ABSENCE)
-        #expect(decoded.payload == "away")
+        #expect(cleanPayload(decoded.payload) == "away")
     }
 
     @Test("sendBroadcast 使用配置的端口")
@@ -177,7 +182,7 @@ struct NetworkManagerFullTests {
         let decoded = try IPMsgPacket.decode(
             String(data: transport.sentMessages[0].data, encoding: .utf8)!)
         #expect(decoded.command == .SENDMSG)
-        #expect(decoded.payload == "Hello Bob!")
+        #expect(cleanPayload(decoded.payload) == "Hello Bob!")
     }
 
     @Test("sendMessage 发送失败时抛出错误")
@@ -222,20 +227,24 @@ struct NetworkManagerFullTests {
         #expect(manager.discoveredUsers["alice"]?.ipAddress == "192.168.1.10")
     }
 
-    @Test("收到 BR_ENTRY 后自动回应 ANSENTRY")
-    func receiveEntryRespondsWithAnsentry() throws {
+    @Test("收到 BR_ENTRY 后自动回应 ANSENTRY（单播）")
+    func receiveEntryRespondsWithAnsentry() async throws {
         let (manager, transport) = makeManager()
         try manager.start()
-        let initialBroadcasts = transport.broadcastMessages.count
+        let initialSent = transport.sentMessages.count
 
         transport.simulateReceive(data: makeBREntryData(), from: "192.168.1.10")
 
-        // 应有新增一条 ANSENTRY 广播
-        #expect(transport.broadcastMessages.count == initialBroadcasts + 1)
-        let lastBroadcast = transport.broadcastMessages.last!
+        // Wait for the async Task to complete
+        try await Task.sleep(nanoseconds: 50_000_000)
+
+        // ANSENTRY is now sent via unicast (sendToHost), not broadcast
+        #expect(transport.sentMessages.count == initialSent + 1)
+        let lastSent = transport.sentMessages.last!
         let decoded = try IPMsgPacket.decode(
-            String(data: lastBroadcast.data, encoding: .utf8)!)
+            String(data: lastSent.data, encoding: .utf8)!)
         #expect(decoded.command == .ANSENTRY)
+        #expect(lastSent.host == "192.168.1.10")
     }
 
     @Test("收到 ANSENTRY 时添加用户但不回应")
@@ -307,20 +316,24 @@ struct NetworkManagerFullTests {
 
     // MARK: - Receive: Message Tests
 
-    @Test("收到 SENDMSG 时处理消息并发送 RECVMSG 确认")
-    func receiveSendMsgTriggersRecvAck() throws {
+    @Test("收到 SENDMSG 时处理消息并发送 RECVMSG 确认（单播）")
+    func receiveSendMsgTriggersRecvAck() async throws {
         let (manager, transport) = makeManager()
         try manager.start()
-        let initialBroadcasts = transport.broadcastMessages.count
+        let initialSent = transport.sentMessages.count
 
         transport.simulateReceive(data: makeSendMsgData(payload: "Hi there"), from: "192.168.1.30")
 
-        // 应有一条 RECVMSG 确认广播
-        #expect(transport.broadcastMessages.count == initialBroadcasts + 1)
-        let ack = transport.broadcastMessages.last!
+        // Wait for the async Task to complete
+        try await Task.sleep(nanoseconds: 50_000_000)
+
+        // RECVMSG is now sent via unicast (sendToHost), not broadcast
+        #expect(transport.sentMessages.count == initialSent + 1)
+        let ack = transport.sentMessages.last!
         let decoded = try IPMsgPacket.decode(String(data: ack.data, encoding: .utf8)!)
         #expect(decoded.command == .RECVMSG)
-        #expect(decoded.payload == "400")  // 原始包 packetNo
+        #expect(cleanPayload(decoded.payload) == "400")  // 原始包 packetNo
+        #expect(ack.host == "192.168.1.30")
     }
 
     // MARK: - Error Handling Tests
@@ -378,9 +391,9 @@ struct NetworkManagerFullTests {
             try IPMsgPacket.decode(String(data: $0.data, encoding: .utf8)!)
         }
 
-        #expect(packets[0].packetNo == 1)
-        #expect(packets[1].packetNo == 2)
-        #expect(packets[2].packetNo == 3)
+        // packetNumber starts from timestamp, so check sequential increment
+        #expect(packets[1].packetNo == packets[0].packetNo + 1)
+        #expect(packets[2].packetNo == packets[1].packetNo + 1)
     }
 
     // MARK: - Concurrent Send Tests

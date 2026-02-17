@@ -516,7 +516,8 @@ struct Phase4IntegrationTests {
         let packetStr = String(data: lastBroadcast.data, encoding: .utf8)!
         let packet = try IPMsgPacket.decode(packetStr)
         #expect(packet.command == .RECALLMSG)
-        #expect(packet.payload == messageID.uuidString)
+        let cleanPayload = String(packet.payload.split(separator: "\0", maxSplits: 1, omittingEmptySubsequences: false).first ?? "")
+        #expect(cleanPayload == messageID.uuidString)
     }
 
     // MARK: - 8. Typing Debounce with Shared NetworkManager

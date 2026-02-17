@@ -22,6 +22,11 @@ struct IntegrationTests {
         return (manager, transport)
     }
 
+    /// Strip the \0instanceId suffix appended by createPacket
+    private func cleanPayload(_ payload: String) -> String {
+        String(payload.split(separator: "\0", maxSplits: 1, omittingEmptySubsequences: false).first ?? "")
+    }
+
     private func makePacketData(
         sender: String, hostname: String, command: IPMsgCommand,
         payload: String = "", packetNo: Int = 1
@@ -485,7 +490,7 @@ struct IntegrationTests {
         let sentPacket = try IPMsgPacket.decode(
             String(data: transport.sentMessages[0].data, encoding: .utf8)!)
         #expect(sentPacket.command == .SENDMSG)
-        #expect(sentPacket.payload == "Hi Bob!")
+        #expect(cleanPayload(sentPacket.payload) == "Hi Bob!")
 
         // 模拟对方发送确认
         let ackData = makePacketData(
@@ -498,11 +503,11 @@ struct IntegrationTests {
         #expect(manager.discoveredUsers["bob"] != nil)
     }
 
-    @Test("收到 SENDMSG 后自动回复 RECVMSG 并正确引用 packetNo")
-    func receiveMsgTriggersAckWithCorrectPacketNo() throws {
+    @Test("收到 SENDMSG 后自动单播回复 RECVMSG 并正确引用 packetNo")
+    func receiveMsgTriggersAckWithCorrectPacketNo() async throws {
         let (manager, transport) = makeManager()
         try manager.start()
-        let initialBroadcasts = transport.broadcastMessages.count
+        let initialSent = transport.sentMessages.count
 
         let incomingPacketNo = 567
         let msgData = makePacketData(
@@ -511,12 +516,15 @@ struct IntegrationTests {
         )
         transport.simulateReceive(data: msgData, from: "192.168.1.30")
 
-        // 应有一条新的 RECVMSG 广播
-        #expect(transport.broadcastMessages.count == initialBroadcasts + 1)
+        // Wait for the async Task to complete
+        try await Task.sleep(nanoseconds: 50_000_000)
+
+        // RECVMSG is now sent via unicast (sendToHost), not broadcast
+        #expect(transport.sentMessages.count == initialSent + 1)
         let ackPacket = try IPMsgPacket.decode(
-            String(data: transport.broadcastMessages.last!.data, encoding: .utf8)!)
+            String(data: transport.sentMessages.last!.data, encoding: .utf8)!)
         #expect(ackPacket.command == .RECVMSG)
-        #expect(ackPacket.payload == "\(incomingPacketNo)")
+        #expect(cleanPayload(ackPacket.payload) == "\(incomingPacketNo)")
     }
 
     // MARK: - 7. 组合过滤集成

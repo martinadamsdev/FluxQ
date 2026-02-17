@@ -146,7 +146,8 @@ struct RecallServiceTests {
         let message = String(data: data, encoding: .utf8)!
         let packet = try IPMsgPacket.decode(message)
         #expect(packet.command == .RECALLMSG)
-        #expect(packet.payload == msgId.uuidString)
+        let cleanPayload = String(packet.payload.split(separator: "\0", maxSplits: 1, omittingEmptySubsequences: false).first ?? "")
+        #expect(cleanPayload == msgId.uuidString)
     }
 
     @Test("recallMessage records to recentRecalls on success")
