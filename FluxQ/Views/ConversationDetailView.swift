@@ -1,5 +1,6 @@
 import SwiftUI
 import SwiftData
+import UniformTypeIdentifiers
 import FluxQModels
 import FluxQServices
 import IPMsgProtocol
@@ -16,6 +17,7 @@ struct ConversationDetailView: View {
     @EnvironmentObject private var networkManager: NetworkManager
     @State private var typingUsername: String?
     @State private var forwardingMessage: Message?
+    @State private var showingFilePicker = false
 
     private var currentUserID: UUID {
         CurrentUserService.currentUser(
@@ -160,6 +162,13 @@ struct ConversationDetailView: View {
     @ViewBuilder
     private func inputBar(conversationId: UUID) -> some View {
         HStack {
+            Button {
+                showingFilePicker = true
+            } label: {
+                Image(systemName: "paperclip")
+            }
+            .buttonStyle(.plain)
+
             TextField("输入消息...", text: $messageText)
                 .textFieldStyle(.roundedBorder)
                 .onSubmit {
@@ -175,6 +184,15 @@ struct ConversationDetailView: View {
             .disabled(messageText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
         }
         .padding()
+        .fileImporter(
+            isPresented: $showingFilePicker,
+            allowedContentTypes: [.item],
+            allowsMultipleSelection: false
+        ) { result in
+            if case .success(let urls) = result, let url = urls.first {
+                handleFileSend(url: url, conversationId: conversationId)
+            }
+        }
     }
 
     // MARK: - Actions
@@ -282,6 +300,21 @@ struct ConversationDetailView: View {
                 }
             }
         }
+    }
+
+    private func handleFileSend(url: URL, conversationId: UUID) {
+        guard url.startAccessingSecurityScopedResource() else { return }
+        defer { url.stopAccessingSecurityScopedResource() }
+
+        let message = Message(
+            conversationID: conversationId,
+            senderID: currentUserID,
+            content: url.lastPathComponent,
+            status: .sending,
+            messageType: .file
+        )
+        modelContext.insert(message)
+        try? modelContext.save()
     }
 
     private func copyToClipboard(_ text: String) {
