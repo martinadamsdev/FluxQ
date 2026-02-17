@@ -6,5 +6,11 @@
 	<array>
 		<string>remote-notification</string>
 	</array>
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>FluxQ 需要访问局域网来发现和通信附近的用户</string>
+	<key>NSBonjourServices</key>
+	<array>
+		<string>_ipmsg._udp</string>
+	</array>
 </dict>
 </plist>
