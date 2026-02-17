@@ -8,6 +8,7 @@ struct MessageBubbleView: View {
     let timestamp: Date
     let status: MessageStatus
     let isRecalled: Bool
+    var onResend: (() -> Void)? = nil
 
     var body: some View {
         HStack {
@@ -29,6 +30,14 @@ struct MessageBubbleView: View {
                         .font(.caption2)
                     if isFromMe {
                         MessageStatusIcon(status: status)
+                    }
+                    if status == .failed, let onResend {
+                        Button(action: onResend) {
+                            Image(systemName: "arrow.clockwise.circle")
+                                .foregroundStyle(.red)
+                                .font(.caption)
+                        }
+                        .buttonStyle(.plain)
                     }
                 }
                 .foregroundStyle(.secondary)

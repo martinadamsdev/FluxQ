@@ -1,6 +1,7 @@
 import SwiftUI
 import SwiftData
 import FluxQModels
+import FluxQServices
 import FluxQUI
 
 /// 对话详情视图 - 显示消息历史和输入框
@@ -11,12 +12,15 @@ struct ConversationDetailView: View {
     @State private var messageText = ""
     @State private var scrollTarget: UUID?
 
-    // TODO: Wire up actual service injection (DI container not yet established)
-    // These will be replaced with proper @EnvironmentObject or @Environment injection
+    @EnvironmentObject private var networkManager: NetworkManager
     @State private var typingUsername: String?
 
-    /// Placeholder current user ID - will be replaced with actual user identity
-    private let currentUserID = UUID(uuidString: "00000000-0000-0000-0000-000000000001")!
+    private var currentUserID: UUID {
+        CurrentUserService.currentUser(
+            networkManager: networkManager,
+            in: modelContext
+        ).id
+    }
 
     #if os(iOS)
     @Environment(\.deviceCategory) private var deviceCategory
@@ -90,7 +94,10 @@ struct ConversationDetailView: View {
                                 isFromMe: isFromMe,
                                 timestamp: message.timestamp,
                                 status: message.status,
-                                isRecalled: message.isRecalled
+                                isRecalled: message.isRecalled,
+                                onResend: message.status == .failed ? {
+                                    resendMessage(message, to: conversationId)
+                                } : nil
                             )
                             .id(message.id)
                             .contextMenu {
@@ -179,13 +186,59 @@ struct ConversationDetailView: View {
         messageText = ""
         scrollTarget = message.id
 
-        // TODO: Wire up TCPMessageService to actually send over network
+        let targetUser = findTargetUser(for: conversationId)
+
+        Task {
+            do {
+                if let user = targetUser {
+                    try await networkManager.sendMessage(to: user, message: trimmed)
+                }
+                message.status = .sent
+                try? modelContext.save()
+            } catch {
+                message.status = .failed
+                try? modelContext.save()
+            }
+        }
+    }
+
+    private func resendMessage(_ message: Message, to conversationId: UUID) {
+        message.status = .sending
+        let content = message.content
+        let targetUser = findTargetUser(for: conversationId)
+
+        Task {
+            do {
+                if let user = targetUser {
+                    try await networkManager.sendMessage(to: user, message: content)
+                }
+                message.status = .sent
+                try? modelContext.save()
+            } catch {
+                message.status = .failed
+                try? modelContext.save()
+            }
+        }
+    }
+
+    private func findTargetUser(for conversationId: UUID) -> DiscoveredUser? {
+        let descriptor = FetchDescriptor<Conversation>(
+            predicate: #Predicate { $0.id == conversationId }
+        )
+        guard let conversation = try? modelContext.fetch(descriptor).first,
+              let participant = conversation.participants?.first else {
+            return nil
+        }
+
+        return networkManager.discoveredUsers.values.first {
+            $0.ipAddress == participant.ipAddress
+        }
     }
 
     private func recallMessage(_ message: Message) {
         message.isRecalled = true
         message.recalledAt = Date()
-        // TODO: Wire up RecallService to broadcast recall over network
+        try? modelContext.save()
     }
 
     private func copyToClipboard(_ text: String) {
