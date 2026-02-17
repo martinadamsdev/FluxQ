@@ -15,6 +15,7 @@ struct ConversationDetailView: View {
 
     @EnvironmentObject private var networkManager: NetworkManager
     @State private var typingUsername: String?
+    @State private var forwardingMessage: Message?
 
     private var currentUserID: UUID {
         CurrentUserService.currentUser(
@@ -69,6 +70,11 @@ struct ConversationDetailView: View {
             #endif
 
             inputBar(conversationId: conversationId)
+        }
+        .sheet(item: $forwardingMessage) { message in
+            ForwardTargetPicker(messageContent: message.content) { targetConversation in
+                forwardMessage(message, to: targetConversation)
+            }
         }
     }
 
@@ -131,7 +137,7 @@ struct ConversationDetailView: View {
             }
 
             Button {
-                // TODO: Wire up forward with MessageActionService
+                forwardingMessage = message
             } label: {
                 Label("转发", systemImage: "arrowshape.turn.up.right")
             }
@@ -246,6 +252,35 @@ struct ConversationDetailView: View {
                 command: .RECALLMSG,
                 payload: message.id.uuidString
             )
+        }
+    }
+
+    private func forwardMessage(_ message: Message, to targetConversation: Conversation) {
+        guard let participant = targetConversation.participants?.first else { return }
+
+        let forwardedMessage = Message(
+            conversationID: targetConversation.id,
+            senderID: currentUserID,
+            content: message.content,
+            status: .sending
+        )
+        modelContext.insert(forwardedMessage)
+        targetConversation.lastMessageTimestamp = Date()
+        try? modelContext.save()
+
+        if let discoveredUser = networkManager.discoveredUsers.values.first(where: {
+            $0.ipAddress == participant.ipAddress
+        }) {
+            Task {
+                do {
+                    try await networkManager.sendMessage(to: discoveredUser, message: message.content)
+                    forwardedMessage.status = .sent
+                    try? modelContext.save()
+                } catch {
+                    forwardedMessage.status = .failed
+                    try? modelContext.save()
+                }
+            }
         }
     }
 
