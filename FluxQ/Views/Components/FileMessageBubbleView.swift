@@ -69,6 +69,15 @@ struct FileMessageBubbleView: View {
     }
 
     private var fileIcon: String {
+        Self.fileIcon(for: fileName)
+    }
+
+    private var formattedFileSize: String {
+        Self.formattedFileSize(fileSize)
+    }
+
+    /// SF Symbol name for a given file name based on extension
+    static func fileIcon(for fileName: String) -> String {
         let ext = (fileName as NSString).pathExtension.lowercased()
         switch ext {
         case "pdf": return "doc.fill"
@@ -79,8 +88,9 @@ struct FileMessageBubbleView: View {
         }
     }
 
-    private var formattedFileSize: String {
-        ByteCountFormatter.string(fromByteCount: fileSize, countStyle: .file)
+    /// Human-readable file size string
+    static func formattedFileSize(_ bytes: Int64) -> String {
+        ByteCountFormatter.string(fromByteCount: bytes, countStyle: .file)
     }
 }
 
