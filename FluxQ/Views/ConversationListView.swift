@@ -1,4 +1,6 @@
 import SwiftUI
+import SwiftData
+import FluxQModels
 
 struct ConversationListView: View {
     /// macOS/iPad: selection binding for multi-column layout
@@ -11,27 +13,24 @@ struct ConversationListView: View {
     @Environment(\.deviceCategory) private var deviceCategory
     #endif
 
-    @State private var navigationPath = NavigationPath()
+    @Environment(\.modelContext) private var modelContext
+    @Query(sort: \Conversation.lastMessageTimestamp, order: .reverse)
+    private var conversations: [Conversation]
 
-    /// 示例对话数据 - TODO: 替换为实际的对话数据源
-    @State private var sampleConversations: [SampleConversation] = SampleConversation.examples
+    @State private var navigationPath = NavigationPath()
 
     var body: some View {
         NavigationStack(path: $navigationPath) {
             List(selection: $selection) {
-                if sampleConversations.isEmpty {
+                if conversations.isEmpty {
                     ContentUnavailableView {
                         Label("暂无消息", systemImage: "message.fill")
                     } description: {
-                        Text("开始一个新的对话")
+                        Text("从发现页开始新的对话")
                     }
                 } else {
-                    ForEach(sampleConversations) { conversation in
-                        #if os(iOS)
-                        conversationRowWithSwipe(conversation)
-                        #else
+                    ForEach(conversations) { conversation in
                         conversationRow(conversation)
-                        #endif
                     }
                 }
             }
@@ -61,31 +60,29 @@ struct ConversationListView: View {
     // MARK: - 会话行视图
 
     @ViewBuilder
-    private func conversationRow(_ conversation: SampleConversation) -> some View {
+    private func conversationRow(_ conversation: Conversation) -> some View {
+        let participant = conversation.participants?.first
+
         HStack(spacing: 12) {
             // 头像
-            Circle()
-                .fill(conversation.avatarColor)
-                .frame(width: 48, height: 48)
-                .overlay {
-                    Text(conversation.avatarInitial)
-                        .font(.system(size: 20, weight: .medium))
-                        .foregroundStyle(.white)
-                }
+            UserAvatarView(
+                avatarData: participant?.avatarData,
+                size: 48
+            )
 
             // 消息内容
             VStack(alignment: .leading, spacing: 4) {
                 HStack {
-                    Text(conversation.name)
+                    Text(conversation.displayName)
                         .font(.headline)
                         .lineLimit(1)
                     Spacer()
-                    Text(conversation.timeString)
+                    Text(conversation.lastMessageTimestamp, style: .relative)
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
                 HStack {
-                    Text(conversation.lastMessage)
+                    Text(lastMessageText(for: conversation))
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
                         .lineLimit(1)
@@ -104,107 +101,13 @@ struct ConversationListView: View {
         .padding(.vertical, 4)
     }
 
-    #if os(iOS)
-    @ViewBuilder
-    private func conversationRowWithSwipe(_ conversation: SampleConversation) -> some View {
-        SwipeableListItem(
-            content: {
-                conversationRow(conversation)
-                    .padding(.horizontal, 4)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .contentShape(Rectangle())
-                    .background(Color(.systemBackground))
-            },
-            leadingActions: [
-                SwipeAction(
-                    icon: conversation.isRead ? "envelope.badge" : "checkmark.circle",
-                    color: .blue
-                ) {
-                    toggleRead(conversation)
-                }
-            ],
-            trailingActions: [
-                SwipeAction(icon: "pin.fill", color: .orange) {
-                    pinConversation(conversation)
-                },
-                SwipeAction(icon: "trash", color: .red) {
-                    deleteConversation(conversation)
-                }
-            ]
-        )
-        .listRowInsets(EdgeInsets())
-        .listRowSeparator(.hidden)
-    }
-    #endif
-
-    // MARK: - 操作方法
-
-    private func toggleRead(_ conversation: SampleConversation) {
-        // TODO: 实现标记已读/未读逻辑
-        if let index = sampleConversations.firstIndex(where: { $0.id == conversation.id }) {
-            sampleConversations[index].isRead.toggle()
+    private func lastMessageText(for conversation: Conversation) -> String {
+        guard let messages = conversation.messages,
+              let last = messages.sorted(by: { $0.timestamp < $1.timestamp }).last else {
+            return "暂无消息"
         }
+        return last.isRecalled ? "消息已撤回" : last.content
     }
-
-    private func deleteConversation(_ conversation: SampleConversation) {
-        // TODO: 实现删除逻辑，添加确认弹窗
-        withAnimation {
-            sampleConversations.removeAll { $0.id == conversation.id }
-        }
-    }
-
-    private func pinConversation(_ conversation: SampleConversation) {
-        // TODO: 实现置顶逻辑
-        if let index = sampleConversations.firstIndex(where: { $0.id == conversation.id }) {
-            sampleConversations[index].isPinned.toggle()
-        }
-    }
-}
-
-// MARK: - 示例数据模型
-
-/// 示例对话数据 - TODO: 替换为 FluxQModels 中的 Conversation 模型
-private struct SampleConversation: Identifiable {
-    let id: UUID
-    let name: String
-    let lastMessage: String
-    let timeString: String
-    let avatarColor: Color
-    let unreadCount: Int
-    var isRead: Bool
-    var isPinned: Bool
-
-    var avatarInitial: String {
-        String(name.prefix(1))
-    }
-
-    static let examples: [SampleConversation] = [
-        SampleConversation(
-            id: UUID(), name: "张三", lastMessage: "明天一起吃午饭吗？",
-            timeString: "12:30", avatarColor: .blue, unreadCount: 2,
-            isRead: false, isPinned: false
-        ),
-        SampleConversation(
-            id: UUID(), name: "产品组", lastMessage: "[李四] 新版设计稿已更新",
-            timeString: "11:15", avatarColor: .green, unreadCount: 5,
-            isRead: false, isPinned: true
-        ),
-        SampleConversation(
-            id: UUID(), name: "王五", lastMessage: "收到，谢谢！",
-            timeString: "昨天", avatarColor: .orange, unreadCount: 0,
-            isRead: true, isPinned: false
-        ),
-        SampleConversation(
-            id: UUID(), name: "赵六", lastMessage: "文件已发送，请查收",
-            timeString: "昨天", avatarColor: .purple, unreadCount: 0,
-            isRead: true, isPinned: false
-        ),
-        SampleConversation(
-            id: UUID(), name: "技术部", lastMessage: "[孙七] 版本已部署到测试环境",
-            timeString: "周一", avatarColor: .red, unreadCount: 0,
-            isRead: true, isPinned: false
-        ),
-    ]
 }
 
 // MARK: - 向后兼容
@@ -235,10 +138,5 @@ extension ConversationListView {
     NavigationStack {
         ConversationListView()
     }
-}
-
-#Preview("空列表") {
-    NavigationStack {
-        ConversationListView()
-    }
+    .modelContainer(for: [User.self, Message.self, Conversation.self], inMemory: true)
 }
