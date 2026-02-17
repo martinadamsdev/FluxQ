@@ -20,19 +20,35 @@ struct MacMainView: View {
     @State private var selectedConversation: UUID?
     @State private var selectedContact: UUID?
 
+    private var needsContentColumn: Bool {
+        selectedTab == .messages || selectedTab == .contacts
+    }
+
     var body: some View {
-        NavigationSplitView {
-            // 第一栏：侧边栏导航
-            SidebarView(selection: $selectedTab)
-        } content: {
-            // 第二栏：内容列表（根据选中的 tab 变化）
-            contentColumn
-        } detail: {
-            // 第三栏：详情（根据选中的 tab 和项目变化）
-            detailColumn
+        Group {
+            if needsContentColumn {
+                NavigationSplitView {
+                    SidebarView(selection: $selectedTab)
+                } content: {
+                    contentColumn
+                } detail: {
+                    detailColumn
+                }
+                .navigationSplitViewStyle(.balanced)
+            } else {
+                NavigationSplitView {
+                    SidebarView(selection: $selectedTab)
+                } detail: {
+                    detailColumn
+                }
+                .navigationSplitViewStyle(.balanced)
+            }
         }
-        .navigationSplitViewStyle(.balanced)
         .focusedSceneValue(\.selectedTab, $selectedTab)
+        .environment(\.startChat, StartChatAction { conversationId in
+            selectedTab = .messages
+            selectedConversation = conversationId
+        })
     }
 
     @ViewBuilder

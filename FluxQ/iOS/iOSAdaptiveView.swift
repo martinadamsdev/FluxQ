@@ -34,6 +34,10 @@ struct iOSAdaptiveView: View {
                     insertion: .move(edge: .trailing).combined(with: .opacity),
                     removal: .move(edge: .leading).combined(with: .opacity)
                 ))
+                .environment(\.startChat, StartChatAction { conversationId in
+                    selectedTabRawValue = AppNavigationItem.messages.rawValue
+                    selectedConversation = conversationId
+                })
             } else {
                 // iPhone/iPad 竖屏 - 使用单手优化包装视图
                 iPhoneOptimizedView()
