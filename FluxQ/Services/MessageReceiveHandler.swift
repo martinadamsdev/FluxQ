@@ -11,8 +11,8 @@ enum MessageReceiveHandler {
         _ received: ReceivedMessage,
         in context: ModelContext
     ) {
-        // 1. 查找或创建发送方 User 和 Conversation
-        let conversationId = ConversationService.findOrCreateConversation(
+        // 1. 查找或创建发送方 User 和 Conversation（同时获取 userId）
+        let (conversationId, senderID) = ConversationService.findOrCreateConversation(
             hostname: received.hostname,
             senderName: received.senderName,
             nickname: received.senderName,
@@ -22,17 +22,7 @@ enum MessageReceiveHandler {
             in: context
         )
 
-        // 2. 查找发送方 User ID
-        let senderHostname = received.hostname
-        let senderIP = received.fromHost
-        let senderDescriptor = FetchDescriptor<User>(
-            predicate: #Predicate {
-                $0.hostname == senderHostname && $0.ipAddress == senderIP
-            }
-        )
-        let senderID = (try? context.fetch(senderDescriptor).first)?.id ?? UUID()
-
-        // 3. 创建 Message
+        // 2. 创建 Message
         let message = Message(
             conversationID: conversationId,
             senderID: senderID,
@@ -41,7 +31,7 @@ enum MessageReceiveHandler {
         )
         context.insert(message)
 
-        // 4. 更新会话时间戳和未读计数
+        // 3. 更新会话时间戳和未读计数
         let convDescriptor = FetchDescriptor<Conversation>(
             predicate: #Predicate { $0.id == conversationId }
         )

@@ -49,7 +49,7 @@ struct SwipeableListItem<Content: View>: View {
             content
                 .offset(x: offset)
                 .gesture(
-                    DragGesture()
+                    DragGesture(minimumDistance: 20)
                         .onChanged { value in
                             isDragging = true
                             let translation = value.translation.width
@@ -68,6 +68,7 @@ struct SwipeableListItem<Content: View>: View {
                             if abs(offset) > actionThreshold {
                                 // 触发触感反馈
                                 let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
+                                impactFeedback.prepare()
                                 impactFeedback.impactOccurred()
 
                                 // 保持展开状态

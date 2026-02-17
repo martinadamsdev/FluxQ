@@ -19,13 +19,17 @@ struct MainTabView: View {
                 }
                 .tag(AppNavigationItem.contacts)
 
-            DiscoveryView()
+            NavigationStack {
+                DiscoveryView()
+            }
                 .tabItem {
                     Label("发现", systemImage: "globe")
                 }
                 .tag(AppNavigationItem.discovery)
 
-            SettingsView()
+            NavigationStack {
+                SettingsView()
+            }
                 .tabItem {
                     Label("我", systemImage: "person.fill")
                 }

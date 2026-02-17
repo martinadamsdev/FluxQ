@@ -20,7 +20,7 @@ struct ConversationListIntegrationTests {
         let context = ModelContext(container)
 
         // Act: create conversation via ConversationService
-        let convId = ConversationService.findOrCreateConversation(
+        let (convId, _) = ConversationService.findOrCreateConversation(
             hostname: "alice-mac",
             senderName: "alice",
             nickname: "Alice",
@@ -29,6 +29,7 @@ struct ConversationListIntegrationTests {
             group: nil,
             in: context
         )
+        try context.save()
 
         // Assert: query finds it (simulates what @Query does in UI)
         let descriptor = FetchDescriptor<Conversation>(
@@ -46,16 +47,17 @@ struct ConversationListIntegrationTests {
         let context = ModelContext(container)
 
         // Create two conversations with different timestamps
-        let id1 = ConversationService.findOrCreateConversation(
+        let (convId1, _) = ConversationService.findOrCreateConversation(
             hostname: "alice-mac", senderName: "alice", nickname: "Alice",
             ipAddress: "192.168.1.10", port: 2425, group: nil, in: context
         )
 
         // Small delay to ensure different timestamps
-        let id2 = ConversationService.findOrCreateConversation(
+        let (convId2, _) = ConversationService.findOrCreateConversation(
             hostname: "bob-mac", senderName: "bob", nickname: "Bob",
             ipAddress: "192.168.1.20", port: 2425, group: nil, in: context
         )
+        try context.save()
 
         let descriptor = FetchDescriptor<Conversation>(
             sortBy: [SortDescriptor(\.lastMessageTimestamp, order: .reverse)]
@@ -63,7 +65,7 @@ struct ConversationListIntegrationTests {
         let conversations = try context.fetch(descriptor)
         #expect(conversations.count == 2)
         // Bob should be first (created later, so more recent timestamp)
-        #expect(conversations[0].id == id2)
+        #expect(conversations[0].id == convId2)
     }
 
     @Test("Tapping same user twice reuses conversation and updates timestamp")
@@ -71,17 +73,17 @@ struct ConversationListIntegrationTests {
         let container = try makeContainer()
         let context = ModelContext(container)
 
-        let id1 = ConversationService.findOrCreateConversation(
+        let (convId1, _) = ConversationService.findOrCreateConversation(
             hostname: "alice-mac", senderName: "alice", nickname: "Alice",
             ipAddress: "192.168.1.10", port: 2425, group: nil, in: context
         )
 
-        let id2 = ConversationService.findOrCreateConversation(
+        let (convId2, _) = ConversationService.findOrCreateConversation(
             hostname: "alice-mac", senderName: "alice", nickname: "Alice",
             ipAddress: "192.168.1.10", port: 2425, group: nil, in: context
         )
 
-        #expect(id1 == id2)
+        #expect(convId1 == convId2)
 
         let conversations = try context.fetch(FetchDescriptor<Conversation>())
         #expect(conversations.count == 1)

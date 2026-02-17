@@ -128,4 +128,29 @@ struct AvatarServiceTests {
         // The oldest entry should have been evicted
         #expect(service.cacheCount == 3)
     }
+
+    @Test("Avatar hash is valid SHA-256 length (64 hex chars)")
+    func avatarHashIsValidSHA256Length() {
+        let service = AvatarService()
+        let testData = Data("hello world".utf8)
+        service.setMyAvatar(testData)
+        #expect(service.myAvatarHash != nil)
+        #expect(service.myAvatarHash!.count == 64, "SHA-256 hex string should be 64 characters")
+    }
+
+    @Test("Cache update does not duplicate entries")
+    func cacheUpdateDoesNotDuplicate() {
+        let service = AvatarService()
+        let data1 = Data("version1".utf8)
+        let data2 = Data("version2".utf8)
+        let hash = "testHash123"
+
+        service.cacheAvatar(data: data1, forHash: hash)
+        service.cacheAvatar(data: data2, forHash: hash)
+
+        // Should update, not add duplicate
+        let cached = service.cachedAvatar(forHash: hash)
+        #expect(cached == data2)
+        #expect(service.cacheCount == 1)
+    }
 }

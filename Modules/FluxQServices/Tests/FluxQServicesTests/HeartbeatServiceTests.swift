@@ -89,4 +89,34 @@ struct HeartbeatServiceTests {
         let afterOriginalTimeout = now.addingTimeInterval(service.timeoutInterval + 1)
         #expect(service.isUserOnline(userId, at: afterOriginalTimeout) == true)
     }
+
+    @Test("start() calls broadcast closure at least once")
+    func startCallsBroadcastPeriodically() async throws {
+        let service = HeartbeatService()
+        var callCount = 0
+        service.start {
+            callCount += 1
+        }
+        // The broadcast is called immediately before the first sleep,
+        // so a short wait should be enough to capture the first call.
+        try await Task.sleep(for: .seconds(2))
+        service.stop()
+        #expect(callCount >= 1, "start() should call the broadcast closure at least once")
+    }
+
+    @Test("stop() cancels periodic broadcast task")
+    func stopCancelsPeriodicTask() async throws {
+        let service = HeartbeatService()
+        var callCount = 0
+        service.start {
+            callCount += 1
+        }
+        // Let the first broadcast fire
+        try await Task.sleep(for: .seconds(1))
+        service.stop()
+        let countAfterStop = callCount
+        // Wait to verify no more calls happen
+        try await Task.sleep(for: .seconds(2))
+        #expect(callCount == countAfterStop, "stop() should prevent further broadcast calls")
+    }
 }

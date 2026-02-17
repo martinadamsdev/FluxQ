@@ -65,4 +65,32 @@ struct FileMetadataTests {
         #expect(payload.contains("test.txt"))
         #expect(payload.contains("400"))
     }
+
+    @Test("Encode then parse roundtrip preserves fields")
+    func encodeDecodeRoundtrip() {
+        let original = FileMetadata(
+            fileID: 1,
+            fileName: "test.txt",
+            fileSize: 1024,
+            modificationTime: Date(timeIntervalSince1970: 123456),
+            fileAttribute: .regular
+        )
+        let encoded = original.encodeToPayload()
+        let parsed = FileMetadata.parse(from: encoded)
+        #expect(parsed.count == 1)
+        #expect(parsed[0].fileName == original.fileName)
+        #expect(parsed[0].fileSize == original.fileSize)
+        #expect(parsed[0].fileAttribute == original.fileAttribute)
+    }
+
+    @Test("Parse symlink attribute")
+    func parseSymlinkAttribute() {
+        // FileAttribute.symlink raw value is 4
+        let payload = "0\u{07}link.txt:ff:65d5f000:4:\u{07}"
+        let files = FileMetadata.parse(from: payload)
+
+        #expect(files.count == 1)
+        #expect(files[0].fileName == "link.txt")
+        #expect(files[0].fileAttribute == .symlink)
+    }
 }

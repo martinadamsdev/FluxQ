@@ -8,6 +8,10 @@
 import Foundation
 import Network
 
+#if canImport(Darwin)
+import Darwin
+#endif
+
 /// 监听器状态
 public enum ListenerState: Sendable {
     case ready
@@ -62,13 +66,13 @@ public final class NWNetworkTransport: NetworkTransport {
         let listener = try NWListener(using: parameters, on: nwPort)
 
         listener.stateUpdateHandler = { [weak self] state in
-            Task { @MainActor in
+            MainActor.assumeIsolated {
                 self?.handleListenerState(state)
             }
         }
 
         listener.newConnectionHandler = { [weak self] connection in
-            Task { @MainActor in
+            MainActor.assumeIsolated {
                 self?.handleNewConnection(connection)
             }
         }
@@ -113,26 +117,76 @@ public final class NWNetworkTransport: NetworkTransport {
     }
 
     public func sendBroadcast(data: Data, port: UInt16) throws {
-        let host = NWEndpoint.Host("255.255.255.255")
-        let nwPort = NWEndpoint.Port(rawValue: port)!
-
-        let connection = NWConnection(host: host, port: nwPort, using: .udp)
-
-        connection.stateUpdateHandler = { state in
-            if case .ready = state {
-                connection.send(
-                    content: data,
-                    completion: .contentProcessed { error in
-                        if let error = error {
-                            print("发送广播失败: \(error)")
-                        }
-                        connection.cancel()
-                    }
-                )
-            }
+        var addresses = getSubnetBroadcastAddresses()
+        // Fallback: always include limited broadcast as a safety net
+        if !addresses.contains("255.255.255.255") {
+            addresses.append("255.255.255.255")
         }
 
-        connection.start(queue: .main)
+        let nwPort = NWEndpoint.Port(rawValue: port)!
+
+        for address in addresses {
+            let host = NWEndpoint.Host(address)
+            let connection = NWConnection(host: host, port: nwPort, using: .udp)
+
+            connection.stateUpdateHandler = { state in
+                if case .ready = state {
+                    connection.send(
+                        content: data,
+                        completion: .contentProcessed { error in
+                            if let error = error {
+                                print("发送广播失败 (\(address)): \(error)")
+                            }
+                            connection.cancel()
+                        }
+                    )
+                }
+            }
+
+            connection.start(queue: .main)
+        }
+    }
+
+    /// 获取所有活跃网络接口的子网定向广播地址
+    private func getSubnetBroadcastAddresses() -> [String] {
+        var addresses: [String] = []
+
+        var ifaddrsPtr: UnsafeMutablePointer<ifaddrs>?
+        guard getifaddrs(&ifaddrsPtr) == 0, let firstAddr = ifaddrsPtr else {
+            return addresses
+        }
+        defer { freeifaddrs(firstAddr) }
+
+        var current: UnsafeMutablePointer<ifaddrs>? = firstAddr
+        while let ifa = current {
+            let flags = Int32(ifa.pointee.ifa_flags)
+            let isUp = (flags & IFF_UP) != 0
+            let isBroadcast = (flags & IFF_BROADCAST) != 0
+
+            if isUp && isBroadcast,
+               let sa = ifa.pointee.ifa_addr,
+               sa.pointee.sa_family == UInt8(AF_INET),
+               let dstAddr = ifa.pointee.ifa_dstaddr {
+                var hostname = [CChar](repeating: 0, count: Int(NI_MAXHOST))
+                if getnameinfo(
+                    dstAddr,
+                    socklen_t(dstAddr.pointee.sa_len),
+                    &hostname,
+                    socklen_t(hostname.count),
+                    nil, 0,
+                    NI_NUMERICHOST
+                ) == 0 {
+                    let address = String(cString: hostname)
+                    if !addresses.contains(address) {
+                        addresses.append(address)
+                    }
+                }
+            }
+
+            current = ifa.pointee.ifa_next
+        }
+
+        return addresses
     }
 
     // MARK: - Private
@@ -155,7 +209,7 @@ public final class NWNetworkTransport: NetworkTransport {
         onNewConnection?(endpointDesc)
 
         connection.stateUpdateHandler = { [weak self] state in
-            Task { @MainActor in
+            MainActor.assumeIsolated {
                 if case .ready = state {
                     self?.receiveMessage(from: connection)
                 }
@@ -166,7 +220,7 @@ public final class NWNetworkTransport: NetworkTransport {
 
     private func receiveMessage(from connection: NWConnection) {
         connection.receiveMessage { [weak self] data, _, isComplete, error in
-            Task { @MainActor in
+            MainActor.assumeIsolated {
                 guard let self = self else { return }
 
                 if let error = error {
@@ -175,8 +229,6 @@ public final class NWNetworkTransport: NetworkTransport {
                 }
 
                 if let data = data {
-                    // 从连接端点提取主机地址
-                    // debugDescription 可能返回带引号的 IP (如 "192.168.1.5")，需要清理
                     let host: String
                     if case let .hostPort(h, _) = connection.endpoint {
                         host = h.debugDescription.replacingOccurrences(of: "\"", with: "")
@@ -186,8 +238,6 @@ public final class NWNetworkTransport: NetworkTransport {
                     self.onDataReceived?(data, host)
                 }
 
-                // UDP datagrams are always "complete", so keep listening
-                // for subsequent messages from the same source
                 self.receiveMessage(from: connection)
             }
         }

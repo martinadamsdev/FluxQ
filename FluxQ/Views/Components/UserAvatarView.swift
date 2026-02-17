@@ -24,6 +24,7 @@ struct UserAvatarView: View {
         }
         .frame(width: size, height: size)
         .clipShape(Circle())
+        .accessibilityLabel(avatarData != nil ? "用户头像" : "默认头像")
     }
 
     private func makeImage() -> Image? {

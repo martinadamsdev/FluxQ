@@ -15,134 +15,132 @@ struct DiscoveryView: View {
     }
 
     var body: some View {
-        NavigationStack {
-            VStack(spacing: 0) {
-                // Search bar
-                HStack {
-                    Image(systemName: "magnifyingglass")
-                        .foregroundStyle(.secondary)
+        VStack(spacing: 0) {
+            // Search bar
+            HStack {
+                Image(systemName: "magnifyingglass")
+                    .foregroundStyle(.secondary)
 
-                    TextField("搜索用户", text: $searchService.searchText)
-                        .textFieldStyle(.plain)
+                TextField("搜索用户", text: $searchService.searchText)
+                    .textFieldStyle(.plain)
 
-                    if !searchService.searchText.isEmpty {
-                        Button {
-                            searchService.searchText = ""
-                        } label: {
-                            Image(systemName: "xmark.circle.fill")
-                                .foregroundStyle(.secondary)
-                        }
-                        .buttonStyle(.plain)
+                if !searchService.searchText.isEmpty {
+                    Button {
+                        searchService.searchText = ""
+                    } label: {
+                        Image(systemName: "xmark.circle.fill")
+                            .foregroundStyle(.secondary)
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+            .padding(.horizontal)
+            .padding(.vertical, 8)
+            #if os(iOS)
+            .background(Color(.systemGray6))
+            #else
+            .background(Color.secondary.opacity(0.1))
+            #endif
+
+            // Filter chips
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 12) {
+                    FilterChip(
+                        title: "仅在线",
+                        isSelected: searchService.filters.contains(.onlineOnly)
+                    ) {
+                        toggleFilter(.onlineOnly)
+                    }
+
+                    FilterChip(
+                        title: "有头像",
+                        isSelected: searchService.filters.contains(.withAvatar)
+                    ) {
+                        toggleFilter(.withAvatar)
+                    }
+
+                    FilterChip(
+                        title: "最近活跃",
+                        isSelected: searchService.filters.contains(.recentlyActive)
+                    ) {
+                        toggleFilter(.recentlyActive)
                     }
                 }
                 .padding(.horizontal)
                 .padding(.vertical, 8)
-                #if os(iOS)
-                .background(Color(.systemGray6))
-                #else
-                .background(Color.secondary.opacity(0.1))
-                #endif
+            }
 
-                // Filter chips
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 12) {
-                        FilterChip(
-                            title: "仅在线",
-                            isSelected: searchService.filters.contains(.onlineOnly)
-                        ) {
-                            toggleFilter(.onlineOnly)
-                        }
+            // User list
+            if filteredUsers.isEmpty {
+                Spacer()
+                VStack(spacing: 12) {
+                    Image(systemName: "globe")
+                        .font(.system(size: 60))
+                        .foregroundStyle(.secondary)
 
-                        FilterChip(
-                            title: "有头像",
-                            isSelected: searchService.filters.contains(.withAvatar)
-                        ) {
-                            toggleFilter(.withAvatar)
-                        }
+                    Text(networkManager.discoveredUsers.isEmpty ? "暂无发现用户" : "无匹配用户")
+                        .font(.title2)
+                        .foregroundStyle(.secondary)
 
-                        FilterChip(
-                            title: "最近活跃",
-                            isSelected: searchService.filters.contains(.recentlyActive)
-                        ) {
-                            toggleFilter(.recentlyActive)
-                        }
-                    }
-                    .padding(.horizontal)
-                    .padding(.vertical, 8)
+                    Text(networkManager.discoveredUsers.isEmpty ? "正在搜索局域网用户..." : "尝试调整搜索或过滤条件")
+                        .font(.subheadline)
+                        .foregroundStyle(.tertiary)
+
+                    Text(networkManager.networkStatus)
+                        .font(.caption2)
+                        .foregroundStyle(.tertiary)
+                        .padding(.top, 8)
                 }
+                Spacer()
+            } else {
+                List(filteredUsers) { user in
+                    Button {
+                        handleUserTap(user)
+                    } label: {
+                        HStack(spacing: 12) {
+                            UserAvatarView(avatarData: user.avatarData, size: 40)
 
-                // User list
-                if filteredUsers.isEmpty {
-                    Spacer()
-                    VStack(spacing: 12) {
-                        Image(systemName: "globe")
-                            .font(.system(size: 60))
-                            .foregroundStyle(.secondary)
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(user.nickname)
+                                    .font(.headline)
 
-                        Text(networkManager.discoveredUsers.isEmpty ? "暂无发现用户" : "无匹配用户")
-                            .font(.title2)
-                            .foregroundStyle(.secondary)
-
-                        Text(networkManager.discoveredUsers.isEmpty ? "正在搜索局域网用户..." : "尝试调整搜索或过滤条件")
-                            .font(.subheadline)
-                            .foregroundStyle(.tertiary)
-
-                        Text(networkManager.networkStatus)
-                            .font(.caption2)
-                            .foregroundStyle(.tertiary)
-                            .padding(.top, 8)
-                    }
-                    Spacer()
-                } else {
-                    List(filteredUsers) { user in
-                        Button {
-                            handleUserTap(user)
-                        } label: {
-                            HStack(spacing: 12) {
-                                UserAvatarView(avatarData: user.avatarData, size: 40)
-
-                                VStack(alignment: .leading, spacing: 4) {
-                                    Text(user.nickname)
-                                        .font(.headline)
-
-                                    HStack {
-                                        Text(user.hostname)
-                                        Text("·")
-                                        Text(user.ipAddress)
-                                    }
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
-
-                                    if let group = user.group {
-                                        Text(group)
-                                            .font(.caption)
-                                            .foregroundStyle(.tertiary)
-                                    }
+                                HStack {
+                                    Text(user.hostname)
+                                    Text("·")
+                                    Text(user.ipAddress)
                                 }
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
 
-                                Spacer()
-
-                                if user.isOnline {
-                                    Circle()
-                                        .fill(Color.green)
-                                        .frame(width: 8, height: 8)
+                                if let group = user.group {
+                                    Text(group)
+                                        .font(.caption)
+                                        .foregroundStyle(.tertiary)
                                 }
                             }
-                            .padding(.vertical, 4)
+
+                            Spacer()
+
+                            if user.isOnline {
+                                Circle()
+                                    .fill(Color.green)
+                                    .frame(width: 8, height: 8)
+                            }
                         }
-                        .buttonStyle(.plain)
+                        .padding(.vertical, 4)
                     }
-                    .listStyle(.plain)
+                    .buttonStyle(.plain)
                 }
+                .listStyle(.plain)
             }
-            .navigationTitle("发现")
-            .toolbar {
-                ToolbarItem(placement: .primaryAction) {
-                    Button {
-                        try? networkManager.refreshDiscovery()
-                    } label: {
-                        Image(systemName: "arrow.clockwise")
-                    }
+        }
+        .navigationTitle("发现")
+        .toolbar {
+            ToolbarItem(placement: .primaryAction) {
+                Button {
+                    try? networkManager.refreshDiscovery()
+                } label: {
+                    Image(systemName: "arrow.clockwise")
                 }
             }
         }
@@ -153,7 +151,7 @@ struct DiscoveryView: View {
             return
         }
 
-        let conversationId = ConversationService.findOrCreateConversation(
+        let (conversationId, _) = ConversationService.findOrCreateConversation(
             hostname: discoveredUser.hostname,
             senderName: discoveredUser.senderName,
             nickname: discoveredUser.nickname,
@@ -162,6 +160,7 @@ struct DiscoveryView: View {
             group: discoveredUser.group,
             in: modelContext
         )
+        try? modelContext.save()
 
         startChat(conversationId)
     }

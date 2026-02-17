@@ -20,6 +20,8 @@ struct FluxQApp: App {
     @StateObject private var conversationTracker = ActiveConversationTracker()
     private let notificationDelegate = NotificationDelegate()
 
+    static let isUITesting = ProcessInfo.processInfo.arguments.contains("--uitesting")
+
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
             User.self,
@@ -29,14 +31,18 @@ struct FluxQApp: App {
         ])
         let modelConfiguration = ModelConfiguration(
             schema: schema,
-            isStoredInMemoryOnly: false
+            isStoredInMemoryOnly: isUITesting
         )
 
         do {
-            return try ModelContainer(
+            let container = try ModelContainer(
                 for: schema,
                 configurations: [modelConfiguration]
             )
+            if isUITesting {
+                seedUITestData(in: container.mainContext)
+            }
+            return container
         } catch {
             // Schema migration failed — delete old store and retry
             let appSupport = FileManager.default.urls(
@@ -59,7 +65,96 @@ struct FluxQApp: App {
         }
     }()
 
-    @State private var lastProcessedMessageCount = 0
+    /// Seed test data for XCUITests — creates conversations and messages in-memory
+    @MainActor
+    private static func seedUITestData(in context: ModelContext) {
+        // Current user (local)
+        let currentUser = User(
+            nickname: "我",
+            hostname: ProcessInfo.processInfo.hostName,
+            ipAddress: "127.0.0.1",
+            port: 2425,
+            group: nil,
+            status: .online,
+            isOnline: true
+        )
+        context.insert(currentUser)
+
+        // Remote user: Alice
+        let alice = User(
+            nickname: "Alice",
+            hostname: "alice-mac",
+            ipAddress: "192.168.1.10",
+            port: 2425,
+            group: nil,
+            status: .online,
+            isOnline: true
+        )
+        context.insert(alice)
+
+        // Remote user: Bob (no messages)
+        let bob = User(
+            nickname: "Bob",
+            hostname: "bob-mac",
+            ipAddress: "192.168.1.20",
+            port: 2425,
+            group: nil,
+            status: .online,
+            isOnline: true
+        )
+        context.insert(bob)
+
+        // Conversation with Alice (has messages)
+        let aliceConv = Conversation(
+            type: .private,
+            participantIDs: [alice.id]
+        )
+        aliceConv.participants = [alice]
+        context.insert(aliceConv)
+
+        let msg1 = Message(
+            conversationID: aliceConv.id,
+            senderID: alice.id,
+            content: "你好，我是 Alice！",
+            timestamp: Date().addingTimeInterval(-120),
+            status: .delivered
+        )
+        let msg2 = Message(
+            conversationID: aliceConv.id,
+            senderID: currentUser.id,
+            content: "你好 Alice，很高兴认识你",
+            timestamp: Date().addingTimeInterval(-60),
+            status: .sent
+        )
+        let msg3 = Message(
+            conversationID: aliceConv.id,
+            senderID: alice.id,
+            content: "这是一条测试消息",
+            timestamp: Date(),
+            status: .delivered
+        )
+        context.insert(msg1)
+        context.insert(msg2)
+        context.insert(msg3)
+
+        // 显式建立 SwiftData 关系（Message 无反向 @Relationship）
+        aliceConv.messages = [msg1, msg2, msg3]
+        aliceConv.lastMessageTimestamp = Date()
+        aliceConv.unreadCount = 2
+
+        // Conversation with Bob (empty, for testing empty state)
+        let bobConv = Conversation(
+            type: .private,
+            participantIDs: [bob.id]
+        )
+        bobConv.participants = [bob]
+        bobConv.lastMessageTimestamp = Date().addingTimeInterval(-300)
+        context.insert(bobConv)
+
+        try? context.save()
+    }
+
+    @State private var processedMessageIndices = Set<Int>()
 
     var body: some Scene {
         WindowGroup {
@@ -69,17 +164,18 @@ struct FluxQApp: App {
                 .environmentObject(heartbeatService)
                 .environmentObject(conversationTracker)
                 .onAppear {
-                    startNetworkServices()
+                    if !FluxQApp.isUITesting {
+                        startNetworkServices()
+                    }
                 }
                 .onChange(of: networkManager.receivedMessages.count) { _, newCount in
-                    guard newCount > lastProcessedMessageCount else { return }
                     let context = sharedModelContainer.mainContext
-                    for i in lastProcessedMessageCount..<newCount {
+                    for i in 0..<newCount where !processedMessageIndices.contains(i) {
+                        processedMessageIndices.insert(i)
                         let received = networkManager.receivedMessages[i]
                         MessageReceiveHandler.handleReceivedMessage(received, in: context)
                         handleNotification(for: received)
                     }
-                    lastProcessedMessageCount = newCount
                 }
                 .onChange(of: networkManager.receivedRecalls.count) { _, _ in
                     if let lastRecall = networkManager.receivedRecalls.last {
@@ -117,7 +213,7 @@ struct FluxQApp: App {
             try networkManager.start()
             let nm = networkManager
             heartbeatService.start {
-                try await nm.refreshDiscovery()
+                try nm.refreshDiscovery()
             }
         } catch {
             print("FluxQApp: 启动网络服务失败 - \(error)")

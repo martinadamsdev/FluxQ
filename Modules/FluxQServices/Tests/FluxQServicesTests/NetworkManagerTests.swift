@@ -43,4 +43,23 @@ struct NetworkManagerTests {
 
         #expect(manager.discoveredUsers.isEmpty)
     }
+
+    @Test func refreshDiscoveryBroadcasts() throws {
+        let transport = MockNetworkTransport()
+        let manager = NetworkManager(port: 2425, transport: transport)
+        try manager.start()
+
+        let countBefore = transport.broadcastMessages.count
+        try manager.refreshDiscovery()
+
+        #expect(transport.broadcastMessages.count > countBefore, "refreshDiscovery should send a broadcast")
+    }
+
+    @Test func networkStatusNotEmptyAfterStart() throws {
+        let transport = MockNetworkTransport()
+        let manager = NetworkManager(port: 2425, transport: transport)
+        try manager.start()
+        #expect(!manager.networkStatus.isEmpty, "networkStatus should have a value after start")
+        manager.stop()
+    }
 }

@@ -126,4 +126,113 @@ struct EnumsTests {
         #expect(ConversationType(rawValue: "group") == .group)
         #expect(ConversationType(rawValue: "channel") == nil)
     }
+
+    // MARK: - TransferStatus
+
+    @Test("TransferStatus has all 5 cases")
+    func transferStatusAllCases() {
+        let allCases: [TransferStatus] = [.pending, .transferring, .completed, .failed, .cancelled]
+        #expect(allCases.count == 5)
+        #expect(allCases.contains(.pending))
+        #expect(allCases.contains(.transferring))
+        #expect(allCases.contains(.completed))
+        #expect(allCases.contains(.failed))
+        #expect(allCases.contains(.cancelled))
+    }
+
+    @Test("TransferStatus raw values are correct strings")
+    func transferStatusRawValues() {
+        #expect(TransferStatus.pending.rawValue == "pending")
+        #expect(TransferStatus.transferring.rawValue == "transferring")
+        #expect(TransferStatus.completed.rawValue == "completed")
+        #expect(TransferStatus.failed.rawValue == "failed")
+        #expect(TransferStatus.cancelled.rawValue == "cancelled")
+    }
+
+    @Test("TransferStatus Codable round-trip")
+    func transferStatusCodable() throws {
+        let allCases: [TransferStatus] = [.pending, .transferring, .completed, .failed, .cancelled]
+        for status in allCases {
+            let data = try JSONEncoder().encode(status)
+            let decoded = try JSONDecoder().decode(TransferStatus.self, from: data)
+            #expect(decoded == status)
+        }
+    }
+
+    @Test("TransferStatus can be initialized from raw value")
+    func transferStatusFromRawValue() {
+        #expect(TransferStatus(rawValue: "pending") == .pending)
+        #expect(TransferStatus(rawValue: "transferring") == .transferring)
+        #expect(TransferStatus(rawValue: "completed") == .completed)
+        #expect(TransferStatus(rawValue: "failed") == .failed)
+        #expect(TransferStatus(rawValue: "cancelled") == .cancelled)
+        #expect(TransferStatus(rawValue: "invalid") == nil)
+    }
+
+    // MARK: - TransferDirection
+
+    @Test("TransferDirection has all 2 cases")
+    func transferDirectionAllCases() {
+        let allCases: [TransferDirection] = [.outgoing, .incoming]
+        #expect(allCases.count == 2)
+    }
+
+    @Test("TransferDirection raw values are correct strings")
+    func transferDirectionRawValues() {
+        #expect(TransferDirection.outgoing.rawValue == "outgoing")
+        #expect(TransferDirection.incoming.rawValue == "incoming")
+    }
+
+    @Test("TransferDirection Codable round-trip")
+    func transferDirectionCodable() throws {
+        let allCases: [TransferDirection] = [.outgoing, .incoming]
+        for direction in allCases {
+            let data = try JSONEncoder().encode(direction)
+            let decoded = try JSONDecoder().decode(TransferDirection.self, from: data)
+            #expect(decoded == direction)
+        }
+    }
+
+    @Test("TransferDirection can be initialized from raw value")
+    func transferDirectionFromRawValue() {
+        #expect(TransferDirection(rawValue: "outgoing") == .outgoing)
+        #expect(TransferDirection(rawValue: "incoming") == .incoming)
+        #expect(TransferDirection(rawValue: "invalid") == nil)
+    }
+
+    // MARK: - MessageType
+
+    @Test("MessageType has all 3 cases")
+    func messageTypeAllCases() {
+        let allCases: [MessageType] = [.text, .file, .image]
+        #expect(allCases.count == 3)
+        #expect(allCases.contains(.text))
+        #expect(allCases.contains(.file))
+        #expect(allCases.contains(.image))
+    }
+
+    @Test("MessageType raw values are correct strings")
+    func messageTypeRawValues() {
+        #expect(MessageType.text.rawValue == "text")
+        #expect(MessageType.file.rawValue == "file")
+        #expect(MessageType.image.rawValue == "image")
+    }
+
+    @Test("MessageType Codable round-trip")
+    func messageTypeCodable() throws {
+        let allCases: [MessageType] = [.text, .file, .image]
+        for msgType in allCases {
+            let data = try JSONEncoder().encode(msgType)
+            let decoded = try JSONDecoder().decode(MessageType.self, from: data)
+            #expect(decoded == msgType)
+        }
+    }
+
+    @Test("MessageType can be initialized from raw value")
+    func messageTypeFromRawValue() {
+        #expect(MessageType(rawValue: "text") == .text)
+        #expect(MessageType(rawValue: "file") == .file)
+        #expect(MessageType(rawValue: "image") == .image)
+        #expect(MessageType(rawValue: "invalid") == nil)
+    }
 }

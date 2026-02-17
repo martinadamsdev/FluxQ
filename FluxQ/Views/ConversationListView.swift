@@ -19,40 +19,52 @@ struct ConversationListView: View {
 
     @State private var navigationPath = NavigationPath()
 
+    /// Whether this view manages its own NavigationStack (iPhone mode)
+    private let usesOwnNavigationStack: Bool
+
     var body: some View {
-        NavigationStack(path: $navigationPath) {
-            List(selection: $selection) {
-                if conversations.isEmpty {
-                    ContentUnavailableView {
-                        Label("暂无消息", systemImage: "message.fill")
-                    } description: {
-                        Text("从发现页开始新的对话")
+        if usesOwnNavigationStack {
+            NavigationStack(path: $navigationPath) {
+                listContent
+                    .navigationDestination(for: UUID.self) { conversationId in
+                        ConversationDetailView(conversationId: conversationId)
                     }
-                } else {
-                    ForEach(conversations) { conversation in
-                        conversationRow(conversation)
-                    }
+            }
+            .onChange(of: activeConversationId) { _, newValue in
+                if let id = newValue {
+                    navigationPath.append(id)
+                    activeConversationId = nil
                 }
             }
-            .listStyle(.plain)
-            .navigationTitle("消息")
-            .toolbar {
-                ToolbarItem(placement: .primaryAction) {
-                    Button {
-                        // TODO: 新建群聊
-                    } label: {
-                        Image(systemName: "plus")
-                    }
+        } else {
+            listContent
+        }
+    }
+
+    @ViewBuilder
+    private var listContent: some View {
+        List(selection: $selection) {
+            if conversations.isEmpty {
+                ContentUnavailableView {
+                    Label("暂无消息", systemImage: "message.fill")
+                } description: {
+                    Text("从发现页开始新的对话")
                 }
-            }
-            .navigationDestination(for: UUID.self) { conversationId in
-                ConversationDetailView(conversationId: conversationId)
+            } else {
+                ForEach(conversations) { conversation in
+                    conversationRow(conversation)
+                }
             }
         }
-        .onChange(of: activeConversationId) { _, newValue in
-            if let id = newValue {
-                navigationPath.append(id)
-                activeConversationId = nil
+        .listStyle(.plain)
+        .navigationTitle("消息")
+        .toolbar {
+            ToolbarItem(placement: .primaryAction) {
+                Button {
+                    // TODO: 新建群聊
+                } label: {
+                    Image(systemName: "plus")
+                }
             }
         }
     }
@@ -103,7 +115,7 @@ struct ConversationListView: View {
 
     private func lastMessageText(for conversation: Conversation) -> String {
         guard let messages = conversation.messages,
-              let last = messages.sorted(by: { $0.timestamp < $1.timestamp }).last else {
+              let last = messages.max(by: { $0.timestamp < $1.timestamp }) else {
             return "暂无消息"
         }
         return last.isRecalled ? "消息已撤回" : last.content
@@ -113,22 +125,25 @@ struct ConversationListView: View {
 // MARK: - 向后兼容
 
 extension ConversationListView {
-    /// macOS/iPad init with selection binding
+    /// macOS/iPad: selection binding, no own NavigationStack
     init(selection: Binding<UUID?>) {
         self._selection = selection
         self._activeConversationId = .constant(nil)
+        self.usesOwnNavigationStack = false
     }
 
-    /// iPhone init with activeConversationId binding
+    /// iPhone: activeConversationId binding, uses own NavigationStack
     init(activeConversationId: Binding<UUID?>) {
         self._selection = .constant(nil)
         self._activeConversationId = activeConversationId
+        self.usesOwnNavigationStack = true
     }
 
-    /// Default init (no external navigation)
+    /// Default init (preview only)
     init() {
         self._selection = .constant(nil)
         self._activeConversationId = .constant(nil)
+        self.usesOwnNavigationStack = true
     }
 }
 

@@ -42,10 +42,10 @@ struct MessageBubbleView: View {
                 }
                 .foregroundStyle(.secondary)
             }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 8)
+            .padding(.horizontal, isRecalled ? 4 : 12)
+            .padding(.vertical, isRecalled ? 4 : 8)
             .background(bubbleBackground)
-            .clipShape(RoundedRectangle(cornerRadius: 16))
+            .clipShape(RoundedRectangle(cornerRadius: isRecalled ? 8 : 16))
 
             if !isFromMe { Spacer(minLength: 60) }
         }

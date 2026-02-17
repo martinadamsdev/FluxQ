@@ -16,16 +16,10 @@ struct ConversationDetailView: View {
 
     @EnvironmentObject private var networkManager: NetworkManager
     @EnvironmentObject private var conversationTracker: ActiveConversationTracker
-    @State private var typingUsername: String?
     @State private var forwardingMessage: Message?
     @State private var showingFilePicker = false
 
-    private var currentUserID: UUID {
-        CurrentUserService.currentUser(
-            networkManager: networkManager,
-            in: modelContext
-        ).id
-    }
+    @State private var currentUserID: UUID?
 
     #if os(iOS)
     @Environment(\.deviceCategory) private var deviceCategory
@@ -57,12 +51,6 @@ struct ConversationDetailView: View {
 
             Divider()
 
-            // Typing indicator
-            if let username = typingUsername {
-                TypingIndicatorView(username: username)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-            }
-
             #if os(iOS)
             if shouldOptimize {
                 QuickActionBar(
@@ -80,6 +68,12 @@ struct ConversationDetailView: View {
             }
         }
         .onAppear {
+            if currentUserID == nil {
+                currentUserID = CurrentUserService.currentUser(
+                    networkManager: networkManager,
+                    in: modelContext
+                ).id
+            }
             conversationTracker.activeConversationId = conversationId
             clearUnreadCount(for: conversationId)
         }
@@ -94,77 +88,14 @@ struct ConversationDetailView: View {
 
     @ViewBuilder
     private func messageList(conversationId: UUID) -> some View {
-        ScrollViewReader { proxy in
-            ScrollView {
-                LazyVStack(spacing: 8) {
-                    let messages = fetchMessages(for: conversationId)
-                    if messages.isEmpty {
-                        ContentUnavailableView(
-                            "暂无消息",
-                            systemImage: "bubble.left.and.bubble.right",
-                            description: Text("发送第一条消息开始对话")
-                        )
-                        .padding(.top, 40)
-                    } else {
-                        ForEach(messages, id: \.id) { message in
-                            let isFromMe = message.senderID == currentUserID
-                            MessageBubbleView(
-                                content: message.content,
-                                isFromMe: isFromMe,
-                                timestamp: message.timestamp,
-                                status: message.status,
-                                isRecalled: message.isRecalled,
-                                onResend: message.status == .failed ? {
-                                    resendMessage(message, to: conversationId)
-                                } : nil
-                            )
-                            .id(message.id)
-                            .contextMenu {
-                                messageContextMenu(for: message, isFromMe: isFromMe)
-                            }
-                        }
-                    }
-                }
-                .padding()
-            }
-            .onChange(of: scrollTarget) { _, newValue in
-                if let target = newValue {
-                    withAnimation {
-                        proxy.scrollTo(target, anchor: .bottom)
-                    }
-                }
-            }
-        }
-    }
-
-    // MARK: - Context Menu
-
-    @ViewBuilder
-    private func messageContextMenu(for message: Message, isFromMe: Bool) -> some View {
-        if !message.isRecalled {
-            Button {
-                copyToClipboard(message.content)
-            } label: {
-                Label("复制", systemImage: "doc.on.doc")
-            }
-
-            Button {
-                forwardingMessage = message
-            } label: {
-                Label("转发", systemImage: "arrowshape.turn.up.right")
-            }
-
-            if isFromMe {
-                let canRecall = Date().timeIntervalSince(message.timestamp) <= 120
-                if canRecall {
-                    Button(role: .destructive) {
-                        recallMessage(message)
-                    } label: {
-                        Label("撤回", systemImage: "arrow.uturn.backward")
-                    }
-                }
-            }
-        }
+        MessageListView(
+            conversationId: conversationId,
+            currentUserID: currentUserID ?? UUID(),
+            scrollTarget: $scrollTarget,
+            forwardingMessage: $forwardingMessage,
+            onResend: { message in resendMessage(message, to: conversationId) },
+            onRecall: { message in recallMessage(message) }
+        )
     }
 
     // MARK: - Input Bar
@@ -210,6 +141,7 @@ struct ConversationDetailView: View {
     private func sendMessage(to conversationId: UUID) {
         let trimmed = messageText.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return }
+        guard let currentUserID else { return }
 
         let message = Message(
             conversationID: conversationId,
@@ -223,7 +155,7 @@ struct ConversationDetailView: View {
 
         let targetUser = findTargetUser(for: conversationId)
 
-        Task {
+        Task { @MainActor in
             do {
                 if let user = targetUser {
                     try await networkManager.sendMessage(to: user, message: trimmed)
@@ -242,7 +174,7 @@ struct ConversationDetailView: View {
         let content = message.content
         let targetUser = findTargetUser(for: conversationId)
 
-        Task {
+        Task { @MainActor in
             do {
                 if let user = targetUser {
                     try await networkManager.sendMessage(to: user, message: content)
@@ -275,16 +207,19 @@ struct ConversationDetailView: View {
         message.recalledAt = Date()
         try? modelContext.save()
 
-        Task {
-            try? networkManager.sendBroadcast(
+        do {
+            try networkManager.sendBroadcast(
                 command: .RECALLMSG,
                 payload: message.id.uuidString
             )
+        } catch {
+            print("ConversationDetailView: recall broadcast failed - \(error)")
         }
     }
 
     private func forwardMessage(_ message: Message, to targetConversation: Conversation) {
         guard let participant = targetConversation.participants?.first else { return }
+        guard let currentUserID else { return }
 
         let forwardedMessage = Message(
             conversationID: targetConversation.id,
@@ -299,7 +234,7 @@ struct ConversationDetailView: View {
         if let discoveredUser = networkManager.discoveredUsers.values.first(where: {
             $0.ipAddress == participant.ipAddress
         }) {
-            Task {
+            Task { @MainActor in
                 do {
                     try await networkManager.sendMessage(to: discoveredUser, message: message.content)
                     forwardedMessage.status = .sent
@@ -326,6 +261,7 @@ struct ConversationDetailView: View {
     private func handleFileSend(url: URL, conversationId: UUID) {
         guard url.startAccessingSecurityScopedResource() else { return }
         defer { url.stopAccessingSecurityScopedResource() }
+        guard let currentUserID else { return }
 
         let message = Message(
             conversationID: conversationId,
@@ -335,25 +271,21 @@ struct ConversationDetailView: View {
             messageType: .file
         )
         modelContext.insert(message)
+        scrollTarget = message.id
+
+        // Update conversation timestamp
+        let descriptor = FetchDescriptor<Conversation>(
+            predicate: #Predicate { $0.id == conversationId }
+        )
+        if let conversation = try? modelContext.fetch(descriptor).first {
+            conversation.lastMessageTimestamp = Date()
+        }
+
+        // TODO: Wire to FileTransferService for actual network sending
+        message.status = .failed
         try? modelContext.save()
     }
 
-    private func copyToClipboard(_ text: String) {
-        #if os(macOS)
-        NSPasteboard.general.clearContents()
-        NSPasteboard.general.setString(text, forType: .string)
-        #elseif os(iOS)
-        UIPasteboard.general.string = text
-        #endif
-    }
-
-    private func fetchMessages(for conversationId: UUID) -> [Message] {
-        let descriptor = FetchDescriptor<Message>(
-            predicate: #Predicate { $0.conversationID == conversationId },
-            sortBy: [SortDescriptor(\.timestamp, order: .forward)]
-        )
-        return (try? modelContext.fetch(descriptor)) ?? []
-    }
 }
 
 // MARK: - Quick Actions
@@ -376,6 +308,122 @@ extension ConversationDetailView {
     ]
 }
 #endif
+
+// MARK: - MessageListView
+
+/// 响应式消息列表 — 使用 @Query 自动响应 SwiftData 变更
+private struct MessageListView: View {
+    let conversationId: UUID
+    let currentUserID: UUID
+    @Binding var scrollTarget: UUID?
+    @Binding var forwardingMessage: Message?
+    var onResend: (Message) -> Void
+    var onRecall: (Message) -> Void
+
+    @Query private var messages: [Message]
+
+    init(
+        conversationId: UUID,
+        currentUserID: UUID,
+        scrollTarget: Binding<UUID?>,
+        forwardingMessage: Binding<Message?>,
+        onResend: @escaping (Message) -> Void,
+        onRecall: @escaping (Message) -> Void
+    ) {
+        self.conversationId = conversationId
+        self.currentUserID = currentUserID
+        self._scrollTarget = scrollTarget
+        self._forwardingMessage = forwardingMessage
+        self.onResend = onResend
+        self.onRecall = onRecall
+        _messages = Query(
+            filter: #Predicate<Message> { $0.conversationID == conversationId },
+            sort: [SortDescriptor(\.timestamp, order: .forward)]
+        )
+    }
+
+    var body: some View {
+        ScrollViewReader { proxy in
+            ScrollView {
+                LazyVStack(spacing: 8) {
+                    if messages.isEmpty {
+                        ContentUnavailableView(
+                            "暂无消息",
+                            systemImage: "bubble.left.and.bubble.right",
+                            description: Text("发送第一条消息开始对话")
+                        )
+                        .padding(.top, 40)
+                    } else {
+                        ForEach(messages, id: \.id) { message in
+                            let isFromMe = message.senderID == currentUserID
+                            MessageBubbleView(
+                                content: message.content,
+                                isFromMe: isFromMe,
+                                timestamp: message.timestamp,
+                                status: message.status,
+                                isRecalled: message.isRecalled,
+                                onResend: message.status == .failed ? {
+                                    onResend(message)
+                                } : nil
+                            )
+                            .id(message.id)
+                            .contextMenu {
+                                messageContextMenu(for: message, isFromMe: isFromMe)
+                            }
+                        }
+                    }
+                }
+                .padding()
+            }
+            .onChange(of: scrollTarget) { _, newValue in
+                if let target = newValue {
+                    withAnimation {
+                        proxy.scrollTo(target, anchor: .bottom)
+                    }
+                }
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func messageContextMenu(for message: Message, isFromMe: Bool) -> some View {
+        if !message.isRecalled {
+            Button {
+                copyToClipboard(message.content)
+            } label: {
+                Label("复制", systemImage: "doc.on.doc")
+            }
+
+            Button {
+                forwardingMessage = message
+            } label: {
+                Label("转发", systemImage: "arrowshape.turn.up.right")
+            }
+
+            if isFromMe {
+                let canRecall = Date().timeIntervalSince(message.timestamp) <= 120
+                if canRecall {
+                    Button(role: .destructive) {
+                        onRecall(message)
+                    } label: {
+                        Label("撤回", systemImage: "arrow.uturn.backward")
+                    }
+                }
+            }
+        }
+    }
+
+    private func copyToClipboard(_ text: String) {
+        #if os(macOS)
+        NSPasteboard.general.clearContents()
+        NSPasteboard.general.setString(text, forType: .string)
+        #elseif os(iOS)
+        UIPasteboard.general.string = text
+        #endif
+    }
+}
+
+// MARK: - Previews
 
 #Preview("已选中") {
     NavigationStack {

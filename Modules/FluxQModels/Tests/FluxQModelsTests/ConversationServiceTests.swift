@@ -20,7 +20,7 @@ struct ConversationServiceTests {
         let container = try makeContainer()
         let context = ModelContext(container)
 
-        let result = ConversationService.findOrCreateConversation(
+        let (conversationId, userId) = ConversationService.findOrCreateConversation(
             hostname: "testhost",
             senderName: "alice",
             nickname: "Alice",
@@ -30,20 +30,20 @@ struct ConversationServiceTests {
             in: context
         )
 
-        // Should return a valid conversation ID
-        #expect(result != nil)
+        // userId should match the created user
 
         // User should be persisted
         let users = try context.fetch(FetchDescriptor<User>())
         #expect(users.count == 1)
         #expect(users[0].hostname == "testhost")
         #expect(users[0].nickname == "Alice")
+        #expect(users[0].id == userId)
 
         // Conversation should be created
         let conversations = try context.fetch(FetchDescriptor<Conversation>())
         #expect(conversations.count == 1)
         #expect(conversations[0].type == .private)
-        #expect(conversations[0].participantIDs.contains(users[0].id))
+        #expect(conversations[0].participantIDs.contains(userId))
     }
 
     @Test("Reuses existing User when hostname + ipAddress match")
@@ -60,7 +60,7 @@ struct ConversationServiceTests {
         context.insert(existingUser)
         try context.save()
 
-        let result = ConversationService.findOrCreateConversation(
+        let (_, userId) = ConversationService.findOrCreateConversation(
             hostname: "testhost",
             senderName: "alice",
             nickname: "Alice Updated",
@@ -70,7 +70,7 @@ struct ConversationServiceTests {
             in: context
         )
 
-        #expect(result != nil)
+        #expect(userId == existingUser.id)
 
         // Should NOT create a duplicate user
         let users = try context.fetch(FetchDescriptor<User>())
@@ -99,7 +99,7 @@ struct ConversationServiceTests {
         context.insert(existingConv)
         try context.save()
 
-        let result = ConversationService.findOrCreateConversation(
+        let (convId, _) = ConversationService.findOrCreateConversation(
             hostname: "testhost",
             senderName: "alice",
             nickname: "Alice",
@@ -110,7 +110,7 @@ struct ConversationServiceTests {
         )
 
         // Should return the existing conversation
-        #expect(result == existingConv.id)
+        #expect(convId == existingConv.id)
 
         // Should NOT create a new conversation
         let conversations = try context.fetch(FetchDescriptor<Conversation>())
@@ -134,7 +134,7 @@ struct ConversationServiceTests {
         context.insert(existingUser)
         try context.save()
 
-        let result = ConversationService.findOrCreateConversation(
+        let (convId, userId) = ConversationService.findOrCreateConversation(
             hostname: "bobhost",
             senderName: "bob",
             nickname: "Bob",
@@ -144,7 +144,7 @@ struct ConversationServiceTests {
             in: context
         )
 
-        #expect(result != nil)
+        #expect(userId == existingUser.id)
 
         let conversations = try context.fetch(FetchDescriptor<Conversation>())
         #expect(conversations.count == 1)
@@ -229,7 +229,7 @@ struct ConversationServiceTests {
         context.insert(groupConv)
         try context.save()
 
-        let result = ConversationService.findOrCreateConversation(
+        let (convId, _) = ConversationService.findOrCreateConversation(
             hostname: "testhost",
             senderName: "alice",
             nickname: "Alice",
@@ -240,13 +240,13 @@ struct ConversationServiceTests {
         )
 
         // Should NOT reuse the group conversation, should create a new private one
-        #expect(result != groupConv.id)
+        #expect(convId != groupConv.id)
 
         let conversations = try context.fetch(FetchDescriptor<Conversation>())
         #expect(conversations.count == 2)
         let privateConvs = conversations.filter { $0.type == .private }
         #expect(privateConvs.count == 1)
-        #expect(privateConvs[0].id == result)
+        #expect(privateConvs[0].id == convId)
     }
 
     @Test("Preserves group field on new user")
@@ -294,7 +294,7 @@ struct ConversationServiceTests {
         let container = try makeContainer()
         let context = ModelContext(container)
 
-        let id1 = ConversationService.findOrCreateConversation(
+        let (convId1, _) = ConversationService.findOrCreateConversation(
             hostname: "host-a",
             senderName: "alice",
             nickname: "Alice",
@@ -304,7 +304,7 @@ struct ConversationServiceTests {
             in: context
         )
 
-        let id2 = ConversationService.findOrCreateConversation(
+        let (convId2, _) = ConversationService.findOrCreateConversation(
             hostname: "host-b",
             senderName: "bob",
             nickname: "Bob",
@@ -314,7 +314,7 @@ struct ConversationServiceTests {
             in: context
         )
 
-        #expect(id1 != id2)
+        #expect(convId1 != convId2)
 
         let conversations = try context.fetch(FetchDescriptor<Conversation>())
         #expect(conversations.count == 2)
@@ -325,7 +325,7 @@ struct ConversationServiceTests {
         let container = try makeContainer()
         let context = ModelContext(container)
 
-        let id1 = ConversationService.findOrCreateConversation(
+        let (convId1, userId1) = ConversationService.findOrCreateConversation(
             hostname: "testhost",
             senderName: "alice",
             nickname: "Alice",
@@ -335,7 +335,7 @@ struct ConversationServiceTests {
             in: context
         )
 
-        let id2 = ConversationService.findOrCreateConversation(
+        let (convId2, userId2) = ConversationService.findOrCreateConversation(
             hostname: "testhost",
             senderName: "alice",
             nickname: "Alice",
@@ -345,7 +345,8 @@ struct ConversationServiceTests {
             in: context
         )
 
-        #expect(id1 == id2)
+        #expect(convId1 == convId2)
+        #expect(userId1 == userId2)
 
         let users = try context.fetch(FetchDescriptor<User>())
         #expect(users.count == 1)

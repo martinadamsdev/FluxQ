@@ -208,4 +208,11 @@ struct SearchFilterServiceTests {
 
         #expect(results.count == 2)
     }
+
+    @Test("Filter users with empty list returns empty")
+    func filterUsersEmptyList() {
+        let service = SearchFilterService()
+        let result = service.filterUsers([])
+        #expect(result.isEmpty)
+    }
 }

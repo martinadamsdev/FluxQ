@@ -10,10 +10,14 @@ final class NotificationService {
 
     /// 请求通知权限
     func requestPermission() {
-        UNUserNotificationCenter.current().requestAuthorization(
-            options: [.alert, .sound, .badge]
-        ) { granted, error in
-            if let error {
+        Task {
+            do {
+                let granted = try await UNUserNotificationCenter.current()
+                    .requestAuthorization(options: [.alert, .sound, .badge])
+                #if DEBUG
+                print("NotificationService: 权限 \(granted ? "已授权" : "被拒绝")")
+                #endif
+            } catch {
                 print("NotificationService: 权限请求失败 - \(error)")
             }
         }

@@ -5,14 +5,14 @@ struct ContactsListView: View {
     @Binding var selection: UUID?
 
     // TODO: 替换为实际的联系人数据
-    private let mockContacts = [
-        (id: UUID(), name: "张三", department: "技术部"),
-        (id: UUID(), name: "李四", department: "产品部"),
-        (id: UUID(), name: "王五", department: "市场部"),
+    private static let mockContacts = [
+        (id: UUID(uuidString: "00000001-0000-0000-0000-000000000001")!, name: "张三", department: "技术部"),
+        (id: UUID(uuidString: "00000001-0000-0000-0000-000000000002")!, name: "李四", department: "产品部"),
+        (id: UUID(uuidString: "00000001-0000-0000-0000-000000000003")!, name: "王五", department: "市场部"),
     ]
 
     var body: some View {
-        List(mockContacts, id: \.id, selection: $selection) { contact in
+        List(Self.mockContacts, id: \.id, selection: $selection) { contact in
             VStack(alignment: .leading, spacing: 4) {
                 Text(contact.name)
                     .font(.headline)

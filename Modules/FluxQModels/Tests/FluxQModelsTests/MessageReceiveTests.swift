@@ -20,7 +20,7 @@ struct MessagePersistenceTests {
         let context = ModelContext(container)
 
         // Create user and conversation
-        let convId = ConversationService.findOrCreateConversation(
+        let (convId, _) = ConversationService.findOrCreateConversation(
             hostname: "alice-mac", senderName: "alice", nickname: "Alice",
             ipAddress: "192.168.1.10", port: 2425, group: nil, in: context
         )

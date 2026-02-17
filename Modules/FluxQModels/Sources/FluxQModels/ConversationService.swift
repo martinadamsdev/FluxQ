@@ -11,6 +11,9 @@ public enum ConversationService {
     /// 3. Find existing private Conversation whose participantIDs contains the user
     /// 4. If found, update lastMessageTimestamp (to sort it to top) and return its ID
     /// 5. If not found, create a new Conversation and return its ID
+    ///
+    /// - Important: This method does NOT call `context.save()`. The caller is
+    ///   responsible for saving at the appropriate time.
     @discardableResult
     public static func findOrCreateConversation(
         hostname: String,
@@ -20,7 +23,7 @@ public enum ConversationService {
         port: Int,
         group: String?,
         in context: ModelContext
-    ) -> UUID {
+    ) -> (conversationId: UUID, userId: UUID) {
         let user = findOrCreateUser(
             hostname: hostname,
             nickname: nickname,
@@ -35,8 +38,7 @@ public enum ConversationService {
             in: context
         )
 
-        try? context.save()
-        return conversationId
+        return (conversationId: conversationId, userId: user.id)
     }
 
     private static func findOrCreateUser(

@@ -19,7 +19,7 @@ struct MessageReceiveHandlerTests {
         let container = try makeContainer()
         let context = ModelContext(container)
 
-        let convId = ConversationService.findOrCreateConversation(
+        let (convId, _) = ConversationService.findOrCreateConversation(
             hostname: "sender-mac",
             senderName: "sender",
             nickname: "Sender",
@@ -53,7 +53,7 @@ struct MessageReceiveHandlerTests {
         let container = try makeContainer()
         let context = ModelContext(container)
 
-        let convId = ConversationService.findOrCreateConversation(
+        let (convId, _) = ConversationService.findOrCreateConversation(
             hostname: "ts-host",
             senderName: "alice",
             nickname: "Alice",
@@ -92,7 +92,7 @@ struct MessageReceiveHandlerTests {
         let container = try makeContainer()
         let context = ModelContext(container)
 
-        let convId = ConversationService.findOrCreateConversation(
+        let (convId, _) = ConversationService.findOrCreateConversation(
             hostname: "unread-host",
             senderName: "bob",
             nickname: "Bob",
