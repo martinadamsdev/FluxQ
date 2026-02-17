@@ -1,10 +1,12 @@
 import SwiftUI
+import SwiftData
 import FluxQServices
 import FluxQModels
 
 struct DiscoveryView: View {
-    @StateObject private var networkManager = NetworkManager()
-    @StateObject private var heartbeatService = HeartbeatService()
+    @EnvironmentObject private var networkManager: NetworkManager
+    @Environment(\.modelContext) private var modelContext
+    @Environment(\.startChat) private var startChat
     @State private var searchService = SearchFilterService()
 
     private var filteredUsers: [User] {
@@ -84,41 +86,51 @@ struct DiscoveryView: View {
                         Text(networkManager.discoveredUsers.isEmpty ? "正在搜索局域网用户..." : "尝试调整搜索或过滤条件")
                             .font(.subheadline)
                             .foregroundStyle(.tertiary)
+
+                        Text(networkManager.networkStatus)
+                            .font(.caption2)
+                            .foregroundStyle(.tertiary)
+                            .padding(.top, 8)
                     }
                     Spacer()
                 } else {
                     List(filteredUsers) { user in
-                        HStack(spacing: 12) {
-                            UserAvatarView(avatarData: user.avatarData, size: 40)
+                        Button {
+                            handleUserTap(user)
+                        } label: {
+                            HStack(spacing: 12) {
+                                UserAvatarView(avatarData: user.avatarData, size: 40)
 
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text(user.nickname)
-                                    .font(.headline)
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text(user.nickname)
+                                        .font(.headline)
 
-                                HStack {
-                                    Text(user.hostname)
-                                    Text("·")
-                                    Text(user.ipAddress)
+                                    HStack {
+                                        Text(user.hostname)
+                                        Text("·")
+                                        Text(user.ipAddress)
+                                    }
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+
+                                    if let group = user.group {
+                                        Text(group)
+                                            .font(.caption)
+                                            .foregroundStyle(.tertiary)
+                                    }
                                 }
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
 
-                                if let group = user.group {
-                                    Text(group)
-                                        .font(.caption)
-                                        .foregroundStyle(.tertiary)
+                                Spacer()
+
+                                if user.isOnline {
+                                    Circle()
+                                        .fill(Color.green)
+                                        .frame(width: 8, height: 8)
                                 }
                             }
-
-                            Spacer()
-
-                            if user.isOnline {
-                                Circle()
-                                    .fill(Color.green)
-                                    .frame(width: 8, height: 8)
-                            }
+                            .padding(.vertical, 4)
                         }
-                        .padding(.vertical, 4)
+                        .buttonStyle(.plain)
                     }
                     .listStyle(.plain)
                 }
@@ -127,29 +139,31 @@ struct DiscoveryView: View {
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {
                     Button {
-                        networkManager.stop()
-                        do {
-                            try networkManager.start()
-                        } catch {
-                            print("启动网络失败: \(error)")
-                        }
+                        try? networkManager.refreshDiscovery()
                     } label: {
                         Image(systemName: "arrow.clockwise")
                     }
                 }
             }
-            .onAppear {
-                do {
-                    try networkManager.start()
-                } catch {
-                    print("启动网络失败: \(error)")
-                }
-            }
-            .onDisappear {
-                networkManager.stop()
-                heartbeatService.stop()
-            }
         }
+    }
+
+    private func handleUserTap(_ user: User) {
+        guard let discoveredUser = networkManager.discoveredUsers.values.first(where: { $0.id == user.id }) else {
+            return
+        }
+
+        let conversationId = ConversationService.findOrCreateConversation(
+            hostname: discoveredUser.hostname,
+            senderName: discoveredUser.senderName,
+            nickname: discoveredUser.nickname,
+            ipAddress: discoveredUser.ipAddress,
+            port: discoveredUser.port,
+            group: discoveredUser.group,
+            in: modelContext
+        )
+
+        startChat(conversationId)
     }
 
     private func toggleFilter(_ filter: FilterType) {
