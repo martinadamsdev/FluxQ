@@ -165,6 +165,53 @@ struct PerformanceTests {
         #expect(totalMs < 100, "10000 次编解码耗时 \(totalMs)ms，超过 100ms 阈值")
     }
 
+    // MARK: - FileTransferService Performance
+
+    @Test("FileSender chunk performance with 100MB data")
+    func chunkPerformance100MB() {
+        let data = Data(repeating: 0xAB, count: 100_000_000)  // 100MB
+
+        let duration = measureDuration {
+            let chunks = FileSender.chunk(data: data)
+            #expect(chunks.count == 1526)  // ceil(100_000_000 / 65536)
+        }
+
+        let totalMs = Double(duration.components.attoseconds) / 1e15
+        #expect(totalMs < 1000, "100MB 分块耗时 \(totalMs)ms，超过 1000ms 阈值")
+    }
+
+    @Test("FileReceiver assembly performance with many chunks")
+    func receiverAssemblyPerformance() {
+        let chunk = Data(repeating: 0xCD, count: 65536)
+
+        let duration = measureDuration {
+            var receiver = FileReceiver(expectedSize: 10_000_000)  // 10MB
+            for _ in 0..<153 {  // ~10MB / 65536
+                receiver.appendChunk(chunk)
+            }
+            let assembled = receiver.assembleData()
+            #expect(assembled.count > 9_000_000)
+        }
+
+        let totalMs = Double(duration.components.attoseconds) / 1e15
+        #expect(totalMs < 1000, "10MB 组装耗时 \(totalMs)ms，超过 1000ms 阈值")
+    }
+
+    @Test("FileSender resume offset performance")
+    func resumeOffsetPerformance() {
+        let data = Data(repeating: 0xEF, count: 50_000_000)  // 50MB
+        let offset = Int64(25_000_000)  // Resume from 50%
+
+        let duration = measureDuration {
+            let chunks = FileSender.chunk(data: data, offset: offset)
+            let totalResumeBytes = chunks.reduce(0) { $0 + $1.count }
+            #expect(totalResumeBytes == 25_000_000)
+        }
+
+        let totalMs = Double(duration.components.attoseconds) / 1e15
+        #expect(totalMs < 500, "50MB 断点续传分块耗时 \(totalMs)ms，超过 500ms 阈值")
+    }
+
     // MARK: - HeartbeatService Performance
 
     @Test("checkTimeouts 1000 在线用户 < 10ms")
