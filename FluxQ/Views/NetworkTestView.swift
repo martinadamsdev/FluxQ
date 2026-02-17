@@ -9,7 +9,7 @@ import SwiftUI
 import FluxQServices
 
 struct NetworkTestView: View {
-    @StateObject private var networkManager = NetworkManager()
+    @EnvironmentObject private var networkManager: NetworkManager
     @State private var errorMessage: String?
 
     var body: some View {

@@ -35,6 +35,9 @@ public protocol NetworkTransport: AnyObject {
 
     /// 监听器状态变化回调
     var onListenerStateChanged: ((ListenerState) -> Void)? { get set }
+
+    /// 新连接到达回调（诊断用）
+    var onNewConnection: ((String) -> Void)? { get set }
 }
 
 // MARK: - NWNetworkTransport
@@ -44,6 +47,7 @@ public protocol NetworkTransport: AnyObject {
 public final class NWNetworkTransport: NetworkTransport {
     public var onDataReceived: ((Data, String) -> Void)?
     public var onListenerStateChanged: ((ListenerState) -> Void)?
+    public var onNewConnection: ((String) -> Void)?
 
     private var listener: NWListener?
     private var connections: [String: NWConnection] = [:]
@@ -147,6 +151,9 @@ public final class NWNetworkTransport: NetworkTransport {
     }
 
     private func handleNewConnection(_ connection: NWConnection) {
+        let endpointDesc = "\(connection.endpoint)"
+        onNewConnection?(endpointDesc)
+
         connection.stateUpdateHandler = { [weak self] state in
             Task { @MainActor in
                 if case .ready = state {
@@ -169,18 +176,19 @@ public final class NWNetworkTransport: NetworkTransport {
 
                 if let data = data {
                     // 从连接端点提取主机地址
+                    // debugDescription 可能返回带引号的 IP (如 "192.168.1.5")，需要清理
                     let host: String
                     if case let .hostPort(h, _) = connection.endpoint {
-                        host = h.debugDescription
+                        host = h.debugDescription.replacingOccurrences(of: "\"", with: "")
                     } else {
                         host = "unknown"
                     }
                     self.onDataReceived?(data, host)
                 }
 
-                if !isComplete {
-                    self.receiveMessage(from: connection)
-                }
+                // UDP datagrams are always "complete", so keep listening
+                // for subsequent messages from the same source
+                self.receiveMessage(from: connection)
             }
         }
     }
@@ -193,6 +201,7 @@ public final class NWNetworkTransport: NetworkTransport {
 public final class MockNetworkTransport: NetworkTransport {
     public var onDataReceived: ((Data, String) -> Void)?
     public var onListenerStateChanged: ((ListenerState) -> Void)?
+    public var onNewConnection: ((String) -> Void)?
 
     public private(set) var isListening = false
     public private(set) var listeningPort: UInt16?
