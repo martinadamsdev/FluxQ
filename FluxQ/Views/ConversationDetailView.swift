@@ -2,6 +2,7 @@ import SwiftUI
 import SwiftData
 import FluxQModels
 import FluxQServices
+import IPMsgProtocol
 import FluxQUI
 
 /// 对话详情视图 - 显示消息历史和输入框
@@ -239,6 +240,13 @@ struct ConversationDetailView: View {
         message.isRecalled = true
         message.recalledAt = Date()
         try? modelContext.save()
+
+        Task {
+            try? networkManager.sendBroadcast(
+                command: .RECALLMSG,
+                payload: message.id.uuidString
+            )
+        }
     }
 
     private func copyToClipboard(_ text: String) {
