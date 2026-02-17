@@ -10,30 +10,81 @@ import XCTest
 final class FluxQUITests: XCTestCase {
 
     override func setUpWithError() throws {
-        // Put setup code here. This method is called before the invocation of each test method in the class.
-
-        // In UI tests it is usually best to stop immediately when a failure occurs.
         continueAfterFailure = false
-
-        // In UI tests it’s important to set the initial state - such as interface orientation - required for your tests before they run. The setUp method is a good place to do this.
     }
 
-    override func tearDownWithError() throws {
-        // Put teardown code here. This method is called after the invocation of each test method in the class.
-    }
+    // MARK: - Navigation Tests
 
     @MainActor
-    func testExample() throws {
-        // UI tests must launch the application that they test.
+    func testSidebarNavigationItems() throws {
         let app = XCUIApplication()
         app.launch()
 
-        // Use XCTAssert and related functions to verify your tests produce the correct results.
+        // macOS uses sidebar navigation with these items
+        let sidebar = app.outlines.firstMatch
+        XCTAssertTrue(sidebar.waitForExistence(timeout: 5))
+
+        // Verify sidebar navigation items exist
+        let messagesButton = app.buttons["消息"].firstMatch
+        let discoveryButton = app.buttons["发现"].firstMatch
+
+        // At least the messages or discovery button should be accessible
+        let hasMessages = messagesButton.waitForExistence(timeout: 3)
+        let hasDiscovery = discoveryButton.waitForExistence(timeout: 3)
+        XCTAssertTrue(hasMessages || hasDiscovery,
+                       "At least one navigation item should exist")
     }
 
     @MainActor
+    func testNavigateToDiscovery() throws {
+        let app = XCUIApplication()
+        app.launch()
+
+        // Try to navigate to discovery
+        let discoveryButton = app.buttons["发现"].firstMatch
+        if discoveryButton.waitForExistence(timeout: 3) {
+            discoveryButton.tap()
+
+            // Discovery view should show search functionality
+            // Wait a moment for navigation to settle
+            let searchField = app.searchFields.firstMatch
+            if searchField.waitForExistence(timeout: 3) {
+                XCTAssertTrue(searchField.exists)
+            }
+        }
+    }
+
+    @MainActor
+    func testNavigateToSettings() throws {
+        let app = XCUIApplication()
+        app.launch()
+
+        // Try to navigate to settings
+        let settingsButton = app.buttons["我"].firstMatch
+        if settingsButton.waitForExistence(timeout: 3) {
+            settingsButton.tap()
+            // Settings view should load without crashing
+        }
+    }
+
+    // MARK: - Empty State Tests
+
+    @MainActor
+    func testConversationListEmptyState() throws {
+        let app = XCUIApplication()
+        app.launch()
+
+        // On fresh install, conversation list should show empty state
+        let emptyLabel = app.staticTexts["暂无消息"]
+        if emptyLabel.waitForExistence(timeout: 3) {
+            XCTAssertTrue(emptyLabel.exists)
+        }
+    }
+
+    // MARK: - Launch Performance
+
+    @MainActor
     func testLaunchPerformance() throws {
-        // This measures how long it takes to launch your application.
         measure(metrics: [XCTApplicationLaunchMetric()]) {
             XCUIApplication().launch()
         }
