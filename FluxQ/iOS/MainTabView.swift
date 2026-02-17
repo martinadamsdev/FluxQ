@@ -1,28 +1,39 @@
 import SwiftUI
 
 struct MainTabView: View {
+    @State private var selectedTab: AppNavigationItem = .messages
+    @State private var activeConversationId: UUID?
+
     var body: some View {
-        TabView {
-            ConversationListView()
+        TabView(selection: $selectedTab) {
+            ConversationListView(activeConversationId: $activeConversationId)
                 .tabItem {
                     Label("消息", systemImage: "message.fill")
                 }
+                .tag(AppNavigationItem.messages)
 
             ContactsView()
                 .tabItem {
                     Label("通讯录", systemImage: "person.2.fill")
                 }
+                .tag(AppNavigationItem.contacts)
 
             DiscoveryView()
                 .tabItem {
                     Label("发现", systemImage: "globe")
                 }
+                .tag(AppNavigationItem.discovery)
 
             SettingsView()
                 .tabItem {
                     Label("我", systemImage: "person.fill")
                 }
+                .tag(AppNavigationItem.settings)
         }
+        .environment(\.startChat, StartChatAction { conversationId in
+            activeConversationId = conversationId
+            selectedTab = .messages
+        })
     }
 }
 
