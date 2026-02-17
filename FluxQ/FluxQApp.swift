@@ -22,6 +22,7 @@ struct FluxQApp: App {
             User.self,
             Message.self,
             Conversation.self,
+            FileTransfer.self,
         ])
         let modelConfiguration = ModelConfiguration(
             schema: schema,

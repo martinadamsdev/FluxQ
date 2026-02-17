@@ -29,3 +29,22 @@ public enum ConversationType: String, Codable {
     case `private`
     case group
 }
+
+public enum TransferStatus: String, Codable {
+    case pending
+    case transferring
+    case completed
+    case failed
+    case cancelled
+}
+
+public enum TransferDirection: String, Codable {
+    case outgoing
+    case incoming
+}
+
+public enum MessageType: String, Codable {
+    case text
+    case file
+    case image
+}
